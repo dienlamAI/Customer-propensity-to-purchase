@@ -1,0 +1,57 @@
+{% extends 'layout/app.html' %}
+{% load static %}
+{% block body %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Simulation</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
+        <li class="breadcrumb-item active">Simulation</li>
+    </ol>
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-table me-1"></i>
+            Add New Data
+        </div>
+        <div class="card-body">
+            <form action="" class="form-horizontal" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="row">
+                    {% for column in columns %}
+                    <div class="col-4">
+                        <div class="input-group mb-3">
+                            <label class="form-label">{{ column }}</label>
+                            <div class="form-check form-switch ms-auto">
+                                <input class="form-check-input" type="checkbox" id="{{ column|lower }}" name="{{ column|lower }}">
+                            </div>
+                            
+                        </div>
+                    </div>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() { 
+                            var dropdown = document.getElementById('{{ column|lower }}');
+                            
+                            // Sửa thuộc tính name
+                            dropdown.name = '{{ column|lower }}'.replace(/ /g, '_');
+                            //  lưu local storage
+                            localStorage.setItem('check_path', 'simulation');
+                        });
+                        </script>
+                    {% endfor %}
+                    <div class="col-12 mt-3">
+                        <div class="input-group mb-3">
+                            <button class="btn btn-primary btn-block" type="submit">Add Data &nbsp;&nbsp;&nbsp;<span></span></button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>    
+    
+    {% include 'datatable.html' %}
+</div> 
+
+{% endblock %}
+{% block javascript %} 
+    <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" crossorigin="anonymous"></script>
+    <script src="{% static 'js/datatables-simple-demo.js' %}"></script>
+{% endblock %}

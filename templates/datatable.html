@@ -1,0 +1,155 @@
+<div class="card mb-4">
+    <div class="card-header" style="display: flex; justify-content: space-between;align-items: center;">
+        <div style="display: flex; align-items: center;">
+            <i class="fas fa-table me-1"></i>
+            Data Table
+        </div>
+        <div class="simulation-right" style="display: flex; align-items: center; justify-content: center;">
+            <!-- Mục tìm kiếm -->
+            <style>
+                .highlight {
+                    background-color: yellow;
+                    font-weight: bold;
+                }
+            </style>
+            <div class="input-group me-2">
+                <input type="text" name="search" class="form-control" placeholder="Search user ID..." aria-label="Search" aria-describedby="basic-addon2"> 
+            </div>  
+            <!-- Nút Delete All -->
+            <a class="btn btn-sm btn-danger" href="deleteall/{{check_path}}" style="display: flex; align-items: center; white-space: nowrap;">
+                <span class="fa fa-trash" style="display: inline-block;"></span>&nbsp; Delete All
+            </a>
+            
+        </div>
+    </div>
+    
+    <div class="card-body">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+        <div class=""> 
+            <table id="datatablesSimple" class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th style="white-space: nowrap;">User ID</th>
+                        <th>Basket icon click</th> 
+                        <th>Basket add list</th> 
+                        <th>Basket add detail</th> 
+                        <th>Sort by</th> 
+                        <th>Image picker</th> 
+                        <th>Account page click</th> 
+                        <th>Promo banner click</th> 
+                        <th>Detail wishlist add</th> 
+                        <th>List size dropdown</th> 
+                        <th>Closed minibasket click</th> 
+                        <th>Checked delivery detail</th> 
+                        <th>Checked returns detail</th> 
+                        <th>Sign in</th> 
+                        <th>Saw checkout</th> 
+                        <th>Saw sizecharts</th> 
+                        <th>Saw delivery</th> 
+                        <th>Saw account upgrade</th> 
+                        <th>Saw homepage</th> 
+                        <th>Device computer</th> 
+                        <th>Device tablet</th> 
+                        <th>Returning user</th> 
+                        <th>Loc uk</th> 
+                        <th>Propensity</th> 
+                        <th style="color: green;">Score</th> 
+                    </tr>
+                </thead>
+                <tbody>
+                {% for i in get_simulation %}
+                    <tr>
+                        <td>
+                            <a class="btn btn-sm btn-danger" id="del" href="deletedata/{{ i.user_id }}/{{ check_path }}" style="display: flex; align-items: center; white-space: nowrap;"><span class="fa fa-trash" style="margin-right: 3px;"></span>Delete</a>
+                        </td>
+                        <td style="white-space: nowrap;">{{ i.user_id }}</td>
+                        <td>{{ i.basket_icon_click }}</td>
+                        <td>{{ i.basket_add_list }}</td>
+                        <td>{{ i.basket_add_detail }}</td>
+                        <td>{{ i.sort_by }}</td>
+                        <td>{{ i.image_picker }}</td>
+                        <td>{{ i.account_page_click }}</td>
+                        <td>{{ i.promo_banner_click }}</td>
+                        <td>{{ i.detail_wishlist_add }}</td>
+                        <td>{{ i.list_size_dropdown }}</td>
+                        <td>{{ i.closed_minibasket_click }}</td>
+                        <td>{{ i.checked_delivery_detail }}</td>
+                        <td>{{ i.checked_returns_detail }}</td>
+                        <td>{{ i.sign_in }}</td>
+                        <td>{{ i.saw_checkout }}</td>
+                        <td>{{ i.saw_sizecharts }}</td> 
+                        <td>{{ i.saw_delivery }}</td>
+                        <td>{{ i.saw_account_upgrade }}</td>
+                        <td>{{ i.saw_homepage }}</td>
+                        <td>{{ i.device_computer }}</td>
+                        <td>{{ i.device_tablet }}</td>
+                        <td>{{ i.returning_user }}</td>
+                        <td>{{ i.loc_uk }}</td>
+                        <td>{{ i.propensity }}</td>
+                        <th style="color: green;">{{ i.score }}</th> 
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div> 
+    </div>
+    
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var searchInput = document.querySelector("input[name='search']");
+
+        searchInput.addEventListener("input", function() {
+            var value = this.value.toLowerCase();
+            var rows = document.querySelectorAll("table tbody tr");
+
+            rows.forEach(function(row) {
+                var userID = row.querySelector("td:nth-child(2)");
+                var text = userID.textContent.toLowerCase();
+                if (text.indexOf(value) > -1){
+                    row.style.display = "table-row";
+                    userID.innerHTML = text.replace(value, "<span class='highlight'>" + value + "</span>");
+                } else {
+                    row.style.display = "none";
+                    userID.innerHTML = text;
+                } 
+            });
+        });
+        function waitSimulation(){
+            var datatableDropdown = document.querySelector(".datatable-dropdown");
+            var simulationRight = document.querySelector(".simulation-right");
+            if (datatableDropdown){
+                var firstChild = simulationRight.firstChild; 
+                var select = datatableDropdown.querySelector("select");
+                datatableDropdown.innerHTML = "";
+                datatableDropdown.appendChild(select);
+                simulationRight.insertBefore(datatableDropdown, firstChild);
+            } else {
+                setTimeout(waitSimulation, 1000);
+            }
+        }
+        waitSimulation();
+        function waitDatatableContainer(){
+            var datatableContainer = document.querySelector(".datatable-container"); 
+            if (datatableContainer){
+                datatableContainer.classList.add("table-responsive");
+            } else {
+                setTimeout(waitDatatableContainer, 1000);
+            }
+        }
+        waitDatatableContainer();
+
+        // var del = document.querySelectorAll("#del"); 
+        // var check_path = localStorage.getItem('check_path'); 
+        // del.forEach(function(del){
+        //     del.href = `${del.href}/${check_path}`;
+        // });
+    });
+
+    
+</script>

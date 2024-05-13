@@ -1,0 +1,197 @@
+{% extends 'layout/app.html' %}
+
+{% load static %}
+{% block body %}
+    <div class="container-fluid px-4">
+        <h1 class="mt-4">Dashboard</h1>
+        <ol class="breadcrumb mb-4">
+            <li class="breadcrumb-item active">Dashboard</li>
+        </ol>
+        <div class="row">
+            <div class="col-xl-3 col-md-6">
+                <div class="card bg-primary text-white mb-4"> 
+                    <div class="card-body">
+                        <div style="font-size: 40px;">{{number_user}}</div>
+                        <i class="fas fa-user"></i> Users
+                    </div> 
+                    <div class="card-footer d-flex align-items-center justify-content-between">
+                        <a class="small text-white stretched-link" href="#">View Details</a>
+                        <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="card bg-success text-white mb-4">
+                    <div class="card-body">
+                        <div style="font-size: 40px;">{{number_potential_customers}}</div>
+                        <i class="fas fa-user"></i> Potential customers
+                    </div>
+                    <div class="card-footer d-flex align-items-center justify-content-between">
+                        <a class="small text-white stretched-link" href="#">View Details</a>
+                        <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="card bg-warning text-white mb-4">
+                    <div class="card-body">
+                        <div style="font-size: 40px;">{{max_score}}</div>
+                        <i class="fas fa-chart-bar"></i> Max score
+                    </div>
+                    <div class="card-footer d-flex align-items-center justify-content-between">
+                        <a class="small text-white stretched-link" href="#">View Details</a>
+                        <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="card bg-danger text-white mb-4">
+                    <div class="card-body">
+                        <div style="font-size: 40px;">{{min_score}}</div>
+                        <i class="fas fa-chart-bar"></i> Min score
+                    </div>
+                    <div class="card-footer d-flex align-items-center justify-content-between">
+                        <a class="small text-white stretched-link" href="#">View Details</a>
+                        <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xl-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-chart-pie me-1"></i>
+                        Pie Chart
+                    </div>
+                    <div class="card-body">
+                        <canvas id="myPieChart" width="100%" height="40"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-chart-bar me-1"></i>
+                        Bar Chart 
+                    </div>
+                    <div class="card-body">
+                        <canvas id="myBarChart" width="100%" height="40"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% include 'datatable.html' %}
+{% endblock %}
+{% block javascript %}
+    <script>
+
+        fetch(`http://127.0.0.1:8000/api/chart-pie/`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json', 
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Success:', data);
+            Chart.defaults.global.defaultFontFamily = '-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
+            Chart.defaults.global.defaultFontColor = '#292b2c';
+
+            // Pie Chart
+            var ctx = document.getElementById("myPieChart");
+            for (var i = 0; i < data.scores.length; i++) {
+                data.scores[i] += " score";
+            }
+            var myPieChart = new Chart(ctx, { 
+                type: 'pie',
+                data: {
+                    labels: data.scores,
+                    datasets: [{
+                    data: data.counts,
+                    backgroundColor: ['#007bff','#ffc107', '#28a745'],
+                    }],
+                },
+                });
+            })
+        .catch(error => {
+            console.error('Error:', error);
+        }); 
+        
+        fetch(`http://127.0.0.1:8000/api/chart-bar/`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json', 
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Success:', data);
+            Chart.defaults.global.defaultFontFamily = '-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
+            Chart.defaults.global.defaultFontColor = '#292b2c';
+
+            // bar Chart
+            var ctx = document.getElementById("myBarChart");
+            data.scores[0] = "Level 3: "+ data.scores[0];
+            data.scores[1] = "Level 2: "+ data.scores[1];
+            data.scores[2] = "Level 1: "+ data.scores[2];
+            var myBarChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.scores,
+                    datasets: [{
+                        label: "Revenue",
+                        backgroundColor: ['#007bff','#ffc107', '#28a745'],
+                        borderColor: "rgba(2,117,216,1)",
+                        data: data.counts,
+                    }],
+                },
+                options: {
+                    scales: {
+                        xAxes: [{
+                            gridLines: {
+                                display: false
+                            },
+                            ticks: {
+                                maxTicksLimit: 3
+                            }
+                        }],
+                        yAxes: [{
+                            ticks: {
+                                min: 0,
+                                max: Math.max.apply(null, data.counts) +2,
+                                maxTicksLimit: 5
+                            },
+                            gridLines: {
+                                display: true
+                            }
+                        }],
+                    },
+                    legend: {
+                        display: false
+                    }
+                }
+            }); 
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        }); 
+
+
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js" crossorigin="anonymous"></script>
+    <!-- <script src="{% static 'assets/demo/chart-bar-demo.js' %}"></script> -->
+    <!-- <script src="{% static 'assets/demo/chart-pie-demo.js' %}"></script> -->
+    <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" crossorigin="anonymous"></script>
+    <script src="{% static 'js/datatables-simple-demo.js' %}"></script>
+{% endblock %}

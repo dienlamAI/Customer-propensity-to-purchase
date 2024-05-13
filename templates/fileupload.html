@@ -1,0 +1,64 @@
+{% extends 'layout/app.html' %}
+{% load static %}
+{% block body %}
+    <div class="container-fluid px-4">
+        <h1 class="mt-4">File Upload</h1>
+        <ol class="breadcrumb mb-4">
+            <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
+            <li class="breadcrumb-item active">File Upload</li>
+        </ol>
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-table me-1"></i>
+                File Upload
+            </div>
+            <div class="card-body">
+                <form action="fileupload" class="form-horizontal" method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="input-group mb-3">
+                                <input type="file" class="form-control custom-file-input file" name="myfile" id="fileInput" accept=".csv">
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="input-group mb-3">
+                                <label class="form-label" style="align-items: center;margin-right: 10px;display: flex;">Quantity to add:  </label>
+                                <input type="number" class="form-control" name="extra_quantity" placeholder="Extra quantity" id="inputFirst" value="10" required>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="input-group mb-3">
+                                <label class="form-label" style="align-items: center;margin-right: 10px;display: flex;">Threading: </label>
+                                <input type="number" class="form-control" name="threading" placeholder="Threading number" id="inputThreading" value="1" required min="1" max="3">
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="input-group mb-3">
+                                <button class="btn btn-primary btn-block" type="submit">Submit &nbsp;&nbsp;&nbsp;<span></span></button>
+                            </div>
+                        </div>
+                        <script> 
+                            document.addEventListener("DOMContentLoaded", function() { 
+                                document.querySelector('form').addEventListener('submit', function(event) {
+                                    var fileInput = document.getElementById('fileInput');
+                                    if (fileInput.files.length === 0) {
+                                        event.preventDefault();
+                                        alert('Vui lòng chọn một tệp trước khi gửi.');
+                                    }
+                                });
+                            });
+
+                        </script>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% include 'datatable.html' %}
+    </div>
+{% endblock %}
+{% block javascript %}
+    
+    <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" crossorigin="anonymous"></script>
+    <script src="{% static 'js/datatables-simple-demo.js' %}"></script>
+{% endblock %}
