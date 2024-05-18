@@ -890,7 +890,11 @@ progress {
 .gy-5 {
   --bs-gutter-y: 3rem;
 }
-
+.padding-left-right {
+  padding-right: calc(var(--bs-gutter-x)* 0.5);
+  padding-left: calc(var(--bs-gutter-x)* 0.5);
+  margin-top: var(--bs-gutter-y)
+}
 @media (min-width: 576px) {
   .col-sm {
     flex: 1 0 0%;
@@ -4561,6 +4565,10 @@ textarea.form-control-lg {
   flex: 1 1 auto;
   padding: 1rem 1rem;
 }
+.cord-body-0-5 {
+  flex: 1 1 auto;
+  padding: 0.5rem 0.5rem;
+}
 
 .card-title {
   margin-bottom: 0.5rem;
@@ -6863,6 +6871,9 @@ textarea.form-control-lg {
 
 .border {
   border: 1px solid #dee2e6 !important;
+}
+.border-color {
+  border: 1px solid rgba(0, 0, 0, 0.125) !important;
 }
 
 .border-0 {
@@ -11708,4 +11719,76 @@ body {
   width: 20px !important;
   font-size: 0.75rem;
   border-radius: 0.25rem !important;
+}
+
+/* loading */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Màu nền đen trong suốt */
+  z-index: 9999; /* Đảm bảo hiển thị trên tất cả các phần tử khác */
+}
+.loader {
+  width: 80px;
+  height: 80px;
+  background: radial-gradient(farthest-side at top, #0000 calc(100% - 21px), lightblue calc(100% - 20px) 99%, #0000) bottom/100% 50%,
+              radial-gradient(farthest-side, lightblue 94%, #0000) left/20px 20px,
+              radial-gradient(farthest-side, lightblue 94%, #0000) right/20px 20px;
+  background-repeat: no-repeat;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: transparent; /* Đặt màu nền của loader thành trong suốt */
+}
+
+.loader:before {
+  content: "";
+  background: #ff0000;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  transform-origin: 50% -20px;
+  transform: translateX(-50%) ;
+  position: absolute;
+  top: 75%; /* Đặt top ở giữa loader */
+  left: 50%; /* Đặt left ở giữa loader */
+  animation: animate 1s infinite cubic-bezier(0.5, 623, 0.5, -623);
+}
+
+@keyframes animate { 
+  100% { transform: translateX(-50%) rotate(0.5deg); }
+} 
+
+
+/* highlight search */
+.select-with-icon {
+  position: relative;
+  display: inline-block;
+}
+.select-with-icon select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  padding-right: 30px;
+}
+.select-with-icon::after {
+  content: "\f0d7"; 
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+.highlight {
+  background-color: yellow;
+  font-weight: bold;
+}
+.table-responsive {
+  overflow-x: auto;
 }

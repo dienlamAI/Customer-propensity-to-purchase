@@ -1,4 +1,3 @@
-from django.shortcuts import render, redirect
 from .models import *
 import datetime
 from django.contrib import messages
@@ -9,19 +8,21 @@ from django.views.decorators.csrf import csrf_protect
 from django.http import HttpResponseRedirect
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.shortcuts import render, redirect 
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import update_session_auth_hash 
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import check_password 
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.views.decorators.csrf import csrf_exempt
 import uuid
 import pandas as pd
 import pickle
 import numpy as np
 import threading
 import datetime
+from .serializers import SimulationSerializer
 
 # Register
 @csrf_protect
@@ -78,9 +79,44 @@ def dashboard(request):
     counts = list(score_counts.values())
     number_potential_customers = counts[1]+counts[2]
 
-    context = {'check_path':'dashboard','get_simulation': get_simulation, 'number_user': number_user, 
-               'max_score': round(max_score,4), 'min_score': round(min_score,4),
-               'number_potential_customers': number_potential_customers}
+
+    # percent
+    selected_products = request.session.get('selected_products')
+    if number_user != 0 and number_user != selected_products[0]:
+        number_user_percent = round((number_user-selected_products[0])/number_user*100, 2)
+        if max_score == 0:
+            max_score_percent = 0
+        else:
+            max_score_percent = round((max_score-selected_products[1])/max_score*100, 2)
+        if min_score == 0:
+            min_score_percent = 0
+        else:
+            min_score_percent = round((min_score-selected_products[2])/min_score*100, 2)
+        if number_potential_customers == 0:
+            number_potential_customers_percent = 0
+        else:
+            number_potential_customers_percent = round((number_potential_customers-selected_products[3])/number_potential_customers*100, 2)
+        request.session['selected_products'] = [number_user, max_score, min_score, number_potential_customers]
+        request.session['selected_products_percent'] = [number_user_percent, max_score_percent, min_score_percent, number_potential_customers_percent]
+    elif number_user == selected_products[0]:
+        number_user_percent = request.session.get('selected_products_percent')[0]
+        max_score_percent = request.session.get('selected_products_percent')[1]
+        min_score_percent = request.session.get('selected_products_percent')[2]
+        number_potential_customers_percent = request.session.get('selected_products_percent')[3]
+    else:
+        number_user_percent = 0
+        max_score_percent = 0
+        min_score_percent = 0
+        number_potential_customers_percent = 0
+        request.session['selected_products'] = [0, 0, 0, 0]
+        request.session['selected_products_percent'] = [0, 0, 0, 0]
+    context = {'get_simulation': get_simulation, 'number_user': number_user, 
+               'max_score': round(max_score,2), 'min_score': round(min_score,4),
+               'number_potential_customers': number_potential_customers,
+               'number_user_percent': number_user_percent,
+               'max_score_percent': max_score_percent,
+               'min_score_percent': min_score_percent,
+               'number_potential_customers_percent': number_potential_customers_percent}
     return render(request, 'dashboard.html', context)
 
 # Upload File
@@ -143,8 +179,9 @@ def fileupload(request):
                     process_data_chunk(df)
                 end = datetime.datetime.now()
                 t = end - start
-                messages.warning(request, f'File was uploaded successfully {t}!')
+                messages.success(request, 'File was uploaded successfully!')
                 print(f'File was uploaded successfully {t}!')
+                return redirect('fileupload')
             except Exception as e:
                 print("Lỗi khi đọc tệp CSV:", e)
         else:
@@ -152,7 +189,7 @@ def fileupload(request):
     get_simulation = Simulation.objects.all()  
     get_simulation = list(get_simulation)
     get_simulation.reverse() 
-    context = {'check_path':'fileupload','get_simulation': get_simulation}
+    context = {'get_simulation': get_simulation}
     return render(request, 'fileupload.html', context) 
 
 # Simulation 
@@ -207,36 +244,94 @@ def simulation(request):
         )
         simulation.save()
         messages.success(request, 'Simulation was created successfully!')
-        return redirect('/simulation') 
+        return redirect('simulation') 
     get_simulation = Simulation.objects.all()  
     get_simulation = list(get_simulation)
     get_simulation.reverse() 
-    context = {'check_path':'simulation','columns': columns, 'get_simulation': get_simulation}
+    context = {'columns': columns, 'get_simulation': get_simulation}
     return render(request, 'simulation.html',context)
 
+# lưu file từ database
 @login_required
-def delete1(request, user_id,check_path): 
+# def save_file(request):
+#     get_simulation = Simulation.objects.all()  
+#     get_simulation = list(get_simulation)
+#     serializer = SimulationSerializer(get_simulation, many=True)
+#     get_simulation = serializer.data
+
+#     print(get_simulation.columns)
+#     get_simulation = pd.DataFrame(get_simulation)
+#     print(get_simulation)
+
+#     # get_simulation = get_simulation.drop(columns=['id', 'created_at', 'updated_at'])
+#     # get_simulation.to_csv('D:/HK2/Kỹ_thuật_dữ_liệu/final/backend/crud/static/file/simulation.csv', index=False)
+#     messages.success(request, 'File was saved successfully!')
+#     return redirect('simulation')
+
+def save_file(request):
+    get_simulation = Simulation.objects.all()  
+    get_simulation = list(get_simulation)
+    print(get_simulation[0])
+    cls = list(get_simulation[0])
+    serializer = SimulationSerializer(get_simulation, many=True)
+    get_simulation = serializer.data
+
+    l = []
+    for cl in cls:
+        l.append([i[cl] for i in get_simulation])
+    print(l)
+    return redirect('database')
+
+@login_required
+def delete1(request, user_id): 
     simulation = Simulation.objects.filter(user_id=user_id).first()
     simulation.delete()
     messages.success(request, 'Data was deleted successfully!') 
-    if check_path == 'simulation': 
-        return redirect('simulation')
-    elif check_path == 'dashboard':
-        return redirect('dashboard')
-    else:
-        return redirect('fileupload')
+    return redirect('database')
 
 @login_required
-def delete_all(request,check_path):
+def delete_all(request):
     Simulation.objects.all().delete()
     messages.success(request, 'All Simulations were deleted successfully!') 
-    if check_path == 'simulation': 
-        return redirect('simulation')
-    elif check_path == 'dashboard':
-        return redirect('dashboard')
-    else:
-        return redirect('fileupload')
+    return redirect('database')
 
+# database
+@login_required
+def database(request):
+    get_simulation = Simulation.objects.all()  
+    get_simulation = list(get_simulation)
+
+    serializer = SimulationSerializer(get_simulation, many=True)
+    get_simulation = serializer.data 
+    get_simulation.reverse() 
+
+    # Pagination
+    if request.method == 'GET':
+        number = request.GET.get('number', 10) 
+        number = int(number)
+
+        select = request.GET.get('fiter', 'All')
+        if select == "All":
+            get_simulation = get_simulation
+        elif select == "Level 1":
+            get_simulation = [i for i in get_simulation if i['score'] >30] 
+        elif select == "Level 2":
+            get_simulation = [i for i in get_simulation if 20 <= i['score'] <= 30] 
+        elif select == "Level 3":
+            get_simulation = [i for i in get_simulation if 10 <= i['score'] < 20]
+    else:
+        number = 10
+    paginator = Paginator(get_simulation, number)
+    page = request.GET.get('page')
+    
+    try:
+        data = paginator.page(page)
+    except PageNotAnInteger:
+        data = paginator.page(1)
+    except EmptyPage:
+        data = paginator.page(paginator.num_pages) 
+    context = {'get_simulation': get_simulation, 'data': data, 'number': number, 'select': select}
+    return render(request, 'database.html', context)
 
 # User
 @login_required
@@ -254,10 +349,10 @@ def users(request):
 
 @login_required
 def user_delete(request, id):
-    user = User.objects.get(id=id)
+    user = get_object_or_404(User, id=id)
     user.delete()
     messages.success(request, 'User was deleted successfully!')
-    return redirect('/users')
+    return redirect('users')
 
 #  change password
 @login_required
@@ -326,3 +421,30 @@ class chartBar(APIView):
         scores = list(score_counts.keys())
         counts = list(score_counts.values())
         return Response({'scores': scores, 'counts': counts}, status=status.HTTP_200_OK)
+    
+# class getData(APIView): 
+#     def post(self, request):
+#         get_simulation = Simulation.objects.all()
+#         # get_simulation = list(get_simulation)
+#         serializer = SimulationSerializer(get_simulation, many=True)
+#         get_simulation = serializer.data 
+#         select = request.data.get('selected','') 
+#         if select == "All":
+#             return Response({'data': get_simulation}, status=status.HTTP_200_OK)
+#         elif select == "Level 1":
+#             get_simulation = [i for i in get_simulation if i['score'] >30]
+#             return Response({'data': get_simulation}, status=status.HTTP_200_OK)
+#         elif select == "Level 2":
+#             get_simulation = [i for i in get_simulation if 20 <= i['score'] <= 30]
+#             return Response({'data': get_simulation}, status=status.HTTP_200_OK)
+#         elif select == "Level 3":
+#             get_simulation = [i for i in get_simulation if 10 <= i['score'] < 20]
+#             return Response({'data': get_simulation}, status=status.HTTP_200_OK)
+        
+#     def get(self, request):
+#         get_simulation = Simulation.objects.all()
+#         serializer = SimulationSerializer(get_simulation, many=True)
+#         get_simulation = serializer.data
+#         return Response({'data': get_simulation}, status=status.HTTP_200_OK)
+    
+

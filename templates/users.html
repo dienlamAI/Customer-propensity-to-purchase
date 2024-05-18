@@ -7,7 +7,7 @@
     <div class="container-fluid px-4">
         <h1 class="mt-4">USERS</h1>
         <ol class="breadcrumb mb-4">
-            <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
             <li class="breadcrumb-item active">User List</li>
         </ol>
         <div class="card mb-4">
@@ -42,7 +42,7 @@
                                 <td>{{ user.email }}</td>
                                 <td>{{ user.last_login |date:"d-m-Y H:i:s" }}</td>
                                 <td>{{ user.date_joined  |date:"d-m-Y H:i:s" }}</td>
-                                <td><a class="btn btn-sm btn-danger" href="delete/{{ user.id }}"><span class="fa fa-trash"></span> Delete</a></td>
+                                <td><a class="btn btn-sm btn-danger" href="{% url 'user_delete' user.id %}"><span class="fa fa-trash"></span> Delete</a></td>
                             </tr>
                         {% endif %}
                     {% endfor %}

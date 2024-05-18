@@ -4,7 +4,7 @@
 <div class="container-fluid px-4">
     <h1 class="mt-4">Simulation</h1>
     <ol class="breadcrumb mb-4">
-        <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
         <li class="breadcrumb-item active">Simulation</li>
     </ol>
     <div class="card mb-4">
@@ -13,6 +13,13 @@
             Add New Data
         </div>
         <div class="card-body">
+            <div>
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible" role="alert" id="message">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
             <form action="" class="form-horizontal" method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="row">
@@ -47,7 +54,6 @@
         </div>
     </div>    
     
-    {% include 'datatable.html' %}
 </div> 
 
 {% endblock %}

@@ -1,0 +1,17 @@
+{% extends 'layout/app.html' %}
+{% load static %}
+{% block body %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Database</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item active">Database</li>
+    </ol>
+    {% include 'datatable.html'%}
+</div> 
+
+{% endblock %}
+{% block javascript %} 
+    <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" crossorigin="anonymous"></script>
+    <script src="{% static 'js/datatables-simple-demo.js' %}"></script>
+{% endblock %}

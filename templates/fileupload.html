@@ -4,7 +4,7 @@
     <div class="container-fluid px-4">
         <h1 class="mt-4">File Upload</h1>
         <ol class="breadcrumb mb-4">
-            <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}/">Dashboard</a></li>
             <li class="breadcrumb-item active">File Upload</li>
         </ol>
         <div class="card mb-4">
@@ -13,8 +13,20 @@
                 File Upload
             </div>
             <div class="card-body">
-                <form action="fileupload" class="form-horizontal" method="POST" enctype="multipart/form-data">
+                <div>
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible" role="alert" id="message">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+                <form action="" class="form-horizontal" method="POST" enctype="multipart/form-data">
                     {% csrf_token %}
+                    <!-- overlay -->
+                    <div class="overlay" name="overload" style="display: none;">
+                        <div class="loader"></div>
+                    </div>
+                    
                     <div class="row">
                         <div class="col-6">
                             <div class="input-group mb-3">
@@ -38,27 +50,25 @@
                                 <button class="btn btn-primary btn-block" type="submit">Submit &nbsp;&nbsp;&nbsp;<span></span></button>
                             </div>
                         </div>
-                        <script> 
-                            document.addEventListener("DOMContentLoaded", function() { 
-                                document.querySelector('form').addEventListener('submit', function(event) {
-                                    var fileInput = document.getElementById('fileInput');
-                                    if (fileInput.files.length === 0) {
-                                        event.preventDefault();
-                                        alert('Vui lòng chọn một tệp trước khi gửi.');
-                                    }
-                                });
-                            });
-
-                        </script>
                     </div>
                 </form>
             </div>
         </div>
-        {% include 'datatable.html' %}
     </div>
 {% endblock %}
 {% block javascript %}
-    
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            document.querySelector('form').addEventListener('submit', function() {
+                console.log('submit');
+                document.querySelector('.overlay').style.display = 'block';
+                if (fileInput.files.length === 0) {
+                    event.preventDefault();
+                    alert('Vui lòng chọn một tệp trước khi gửi.');
+                }
+            });
+        });
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" crossorigin="anonymous"></script>
     <script src="{% static 'js/datatables-simple-demo.js' %}"></script>
 {% endblock %}

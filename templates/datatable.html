@@ -1,155 +1,287 @@
 <div class="card mb-4">
-    <div class="card-header" style="display: flex; justify-content: space-between;align-items: center;">
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
         <div style="display: flex; align-items: center;">
             <i class="fas fa-table me-1"></i>
             Data Table
         </div>
-        <div class="simulation-right" style="display: flex; align-items: center; justify-content: center;">
-            <!-- Mục tìm kiếm -->
-            <style>
-                .highlight {
-                    background-color: yellow;
-                    font-weight: bold;
-                }
-            </style>
-            <div class="input-group me-2">
-                <input type="text" name="search" class="form-control" placeholder="Search user ID..." aria-label="Search" aria-describedby="basic-addon2"> 
+        <form class="simulation-right"  id="pagination-form" method="GET" style="display: flex; align-items: center; justify-content: center;">
+            <div class="form-group"> 
+                <div class="form-group select-with-icon">
+                    <select class="form-control" data-toggle="tooltip" data-placement="top" title="Level of potential customers" style="width: 95px; margin-right: 7px;" name="fiter" id="filterSelect">
+                        {% if select == "All" %}
+                        <option value="All" selected>All</option>
+                        <option value="Level 1">Level 1</option>
+                        <option value="Level 2">Level 2</option>
+                        <option value="Level 3">Level 3</option>
+                        {% elif select == "Level 1" %}
+                        <option value="All">All</option>
+                        <option value="Level 1" selected>Level 1</option>
+                        <option value="Level 2">Level 2</option>
+                        <option value="Level 3">Level 3</option>
+                        {% elif select == "Level 2" %}
+                        <option value="All">All</option>
+                        <option value="Level 1">Level 1</option>
+                        <option value="Level 2" selected>Level 2</option>
+                        <option value="Level 3">Level 3</option>
+                        {% elif select == "Level 3" %}
+                        <option value="All">All</option>
+                        <option value="Level 1">Level 1</option>
+                        <option value="Level 2">Level 2</option>
+                        <option value="Level 3" selected>Level 3</option>
+                        {% endif %}
+                    </select>
+                </div>
+            </div>
+            <div class="input-group me-2" data-toggle="tooltip" data-placement="top" title="Number data">
+                <input type="number" value="{{ number }}" style="width: 70px;" min="10" id="number" name="number" class="form-control" aria-describedby="basic-addon2" onchange="updateNumber()">
+            </div>
+            <div class="input-group me-2" data-toggle="tooltip" data-placement="top" title="Search user ID">
+                <input type="text" name="search" class="form-control" placeholder="Search user ID..." aria-label="Search" aria-describedby="basic-addon2" style="width: 130px;"> 
             </div>  
-            <!-- Nút Delete All -->
-            <a class="btn btn-sm btn-danger" href="deleteall/{{check_path}}" style="display: flex; align-items: center; white-space: nowrap;">
+            <a class="btn btn-sm btn-danger" data-toggle="tooltip" data-placement="top" title="Delete All" href="{% url 'delete_all' %}" style="display: flex; align-items: center; white-space: nowrap; margin-right: 7px;">
                 <span class="fa fa-trash" style="display: inline-block;"></span>&nbsp; Delete All
             </a>
-            
-        </div>
-    </div>
+            <!-- Tạo thẻ lưu file -->
+            <a class="btn btn-sm btn-success" data-toggle="tooltip" data-placement="top" title="Export file" href="{% url 'save_file' %}" style="display: flex; align-items: center; white-space: nowrap;">
+                <span class="fa fa-download" style="display: inline-block;"></span>&nbsp; Export
+            </a>
     
+        </form>
+    </div>
     <div class="card-body">
         {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible" role="alert">
+            <div class="alert alert-{{ message.tags }} alert-dismissible" role="alert" id="message">
                 {{ message }}
             </div>
         {% endfor %}
-        <div class=""> 
-            <table id="datatablesSimple" class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                <thead>
-                    <tr>
-                        <th></th>
-                        <th style="white-space: nowrap;">User ID</th>
-                        <th>Basket icon click</th> 
-                        <th>Basket add list</th> 
-                        <th>Basket add detail</th> 
-                        <th>Sort by</th> 
-                        <th>Image picker</th> 
-                        <th>Account page click</th> 
-                        <th>Promo banner click</th> 
-                        <th>Detail wishlist add</th> 
-                        <th>List size dropdown</th> 
-                        <th>Closed minibasket click</th> 
-                        <th>Checked delivery detail</th> 
-                        <th>Checked returns detail</th> 
-                        <th>Sign in</th> 
-                        <th>Saw checkout</th> 
-                        <th>Saw sizecharts</th> 
-                        <th>Saw delivery</th> 
-                        <th>Saw account upgrade</th> 
-                        <th>Saw homepage</th> 
-                        <th>Device computer</th> 
-                        <th>Device tablet</th> 
-                        <th>Returning user</th> 
-                        <th>Loc uk</th> 
-                        <th>Propensity</th> 
-                        <th style="color: green;">Score</th> 
-                    </tr>
-                </thead>
-                <tbody>
-                {% for i in get_simulation %}
-                    <tr>
-                        <td>
-                            <a class="btn btn-sm btn-danger" id="del" href="deletedata/{{ i.user_id }}/{{ check_path }}" style="display: flex; align-items: center; white-space: nowrap;"><span class="fa fa-trash" style="margin-right: 3px;"></span>Delete</a>
-                        </td>
-                        <td style="white-space: nowrap;">{{ i.user_id }}</td>
-                        <td>{{ i.basket_icon_click }}</td>
-                        <td>{{ i.basket_add_list }}</td>
-                        <td>{{ i.basket_add_detail }}</td>
-                        <td>{{ i.sort_by }}</td>
-                        <td>{{ i.image_picker }}</td>
-                        <td>{{ i.account_page_click }}</td>
-                        <td>{{ i.promo_banner_click }}</td>
-                        <td>{{ i.detail_wishlist_add }}</td>
-                        <td>{{ i.list_size_dropdown }}</td>
-                        <td>{{ i.closed_minibasket_click }}</td>
-                        <td>{{ i.checked_delivery_detail }}</td>
-                        <td>{{ i.checked_returns_detail }}</td>
-                        <td>{{ i.sign_in }}</td>
-                        <td>{{ i.saw_checkout }}</td>
-                        <td>{{ i.saw_sizecharts }}</td> 
-                        <td>{{ i.saw_delivery }}</td>
-                        <td>{{ i.saw_account_upgrade }}</td>
-                        <td>{{ i.saw_homepage }}</td>
-                        <td>{{ i.device_computer }}</td>
-                        <td>{{ i.device_tablet }}</td>
-                        <td>{{ i.returning_user }}</td>
-                        <td>{{ i.loc_uk }}</td>
-                        <td>{{ i.propensity }}</td>
-                        <th style="color: green;">{{ i.score }}</th> 
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        </div> 
+        <div class="table-data">
+            <div class="table-responsive">
+                <table id="datatablesSimple1" class="table table-bordered" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th style="white-space: nowrap;">User ID</th>
+                            <th>Basket icon click</th>
+                            <th>Basket add list</th>
+                            <th>Basket add detail</th>
+                            <th>Sort by</th>
+                            <th>Image picker</th>
+                            <th>Account page click</th>
+                            <th>Promo banner click</th>
+                            <th>Detail wishlist add</th>
+                            <th>List size dropdown</th>
+                            <th>Closed minibasket click</th>
+                            <th>Checked delivery detail</th>
+                            <th>Checked returns detail</th>
+                            <th>Sign in</th>
+                            <th>Saw checkout</th>
+                            <th>Saw sizecharts</th>
+                            <th>Saw delivery</th>
+                            <th>Saw account upgrade</th>
+                            <th>Saw homepage</th>
+                            <th>Device computer</th>
+                            <th>Device tablet</th>
+                            <th>Returning user</th>
+                            <th>Loc uk</th>
+                            <th>Propensity</th>
+                            <th style="color: green;">Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for i in data.object_list %}
+                        <tr>
+                            <td data-toggle="tooltip" data-placement="top" title="Delete {{i.user_id}}">
+                                <a class="btn btn-sm btn-danger" id="del" href="{% url 'delete' i.user_id %}" style="display: flex; align-items: center; white-space: nowrap;">
+                                    <span class="fa fa-trash" style="margin-right: 3px;"></span>Delete
+                                </a>
+                            </td>
+                            <td style="white-space: nowrap;">{{i.user_id}}</td>
+                            <td>{{i.basket_icon_click}}</td>
+                            <td>{{i.basket_add_list}}</td>
+                            <td>{{i.basket_add_detail}}</td>
+                            <td>{{i.sort_by}}</td>
+                            <td>{{i.image_picker}}</td>
+                            <td>{{i.account_page_click}}</td>
+                            <td>{{i.promo_banner_click}}</td>
+                            <td>{{i.detail_wishlist_add}}</td>
+                            <td>{{i.list_size_dropdown}}</td>
+                            <td>{{i.closed_minibasket_click}}</td>
+                            <td>{{i.checked_delivery_detail}}</td>
+                            <td>{{i.checked_returns_detail}}</td>
+                            <td>{{i.sign_in}}</td>
+                            <td>{{i.saw_checkout}}</td>
+                            <td>{{i.saw_sizecharts}}</td>
+                            <td>{{i.saw_delivery}}</td>
+                            <td>{{i.saw_account_upgrade}}</td>
+                            <td>{{i.saw_homepage}}</td>
+                            <td>{{i.device_computer}}</td>
+                            <td>{{i.device_tablet}}</td>
+                            <td>{{i.returning_user}}</td>
+                            <td>{{i.loc_uk}}</td>
+                            <td>{{i.propensity}}</td>
+                            <td style="color: green;">{{i.score}}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <nav id="pagination-nav" aria-label="Page navigation" style="margin-top: 10px;margin-bottom: 0;">
+                <ul class="pagination justify-content-end">
+                    {% if data.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1&select={{ select }}&number={{ number }}" aria-label="First">
+                                <span aria-hidden="true">&laquo; first</span>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ data.previous_page_number }}&select={{ select }}&number={{ number }}" aria-label="Previous">
+                                <span aria-hidden="true">previous</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">&laquo; first</a>
+                        </li>
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">previous</a>
+                        </li>
+                    {% endif %}
+                    
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#">Page {{ data.number }} of {{ data.paginator.num_pages }}</a>
+                    </li>
+            
+                    {% if data.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ data.next_page_number }}&select={{ select }}&number={{ number }}" aria-label="Next">
+                                <span aria-hidden="true">next</span>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ data.paginator.num_pages }}&select={{ select }}&number={{ number }}" aria-label="Last">
+                                <span aria-hidden="true">last &raquo;</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">next</a>
+                        </li>
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">last &raquo;</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
     </div>
-    
 </div>
+
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        var searchInput = document.querySelector("input[name='search']");
-
-        searchInput.addEventListener("input", function() {
-            var value = this.value.toLowerCase();
-            var rows = document.querySelectorAll("table tbody tr");
-
-            rows.forEach(function(row) {
-                var userID = row.querySelector("td:nth-child(2)");
-                var text = userID.textContent.toLowerCase();
-                if (text.indexOf(value) > -1){
-                    row.style.display = "table-row";
-                    userID.innerHTML = text.replace(value, "<span class='highlight'>" + value + "</span>");
-                } else {
-                    row.style.display = "none";
-                    userID.innerHTML = text;
-                } 
-            });
+function highlightSearch() {
+    var searchInput = document.querySelector("input[name='search']");
+    searchInput.addEventListener("input", function() {
+        var value = this.value.toLowerCase();
+        var rows = document.querySelectorAll("table tbody tr"); 
+        rows.forEach(function(row) {
+            var userID = row.querySelector("td:nth-child(2)");
+            var text = userID.textContent.toLowerCase();
+            if (text.indexOf(value) > -1) {
+                row.style.display = "table-row";
+                userID.innerHTML = text.replace(value, "<span class='highlight'>" + value + "</span>");
+            } else {
+                row.style.display = "none";
+                userID.innerHTML = text;
+            }
         });
-        function waitSimulation(){
-            var datatableDropdown = document.querySelector(".datatable-dropdown");
-            var simulationRight = document.querySelector(".simulation-right");
-            if (datatableDropdown){
-                var firstChild = simulationRight.firstChild; 
-                var select = datatableDropdown.querySelector("select");
-                datatableDropdown.innerHTML = "";
-                datatableDropdown.appendChild(select);
-                simulationRight.insertBefore(datatableDropdown, firstChild);
-            } else {
-                setTimeout(waitSimulation, 1000);
-            }
-        }
-        waitSimulation();
-        function waitDatatableContainer(){
-            var datatableContainer = document.querySelector(".datatable-container"); 
-            if (datatableContainer){
-                datatableContainer.classList.add("table-responsive");
-            } else {
-                setTimeout(waitDatatableContainer, 1000);
-            }
-        }
-        waitDatatableContainer();
-
-        // var del = document.querySelectorAll("#del"); 
-        // var check_path = localStorage.getItem('check_path'); 
-        // del.forEach(function(del){
-        //     del.href = `${del.href}/${check_path}`;
-        // });
     });
+}
+function handlePaginationClick() {
+    const paginationLinks = document.querySelectorAll('#pagination-nav .page-link');
 
+    paginationLinks.forEach(function(link) {
+        link.addEventListener('click', function(event) {
+            event.preventDefault();
+            const scrollPosition = window.scrollY;
+            const url = event.target.closest('a').href;
+
+            // Store the scroll position in localStorage
+            localStorage.setItem('scrollPosition', scrollPosition);
+
+            // Navigate to the new page
+            window.location.href = url;
+        });
+    });
+}
+
+function restoreScrollPosition() {
+    const storedScrollPosition = localStorage.getItem('scrollPosition');
+    console.log(storedScrollPosition);
+    if (storedScrollPosition !== null) {
+        window.scrollTo(0, parseInt(storedScrollPosition, 10));
+        localStorage.removeItem('scrollPosition');
+    }
+}
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim(); 
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+function fetchNumber() {
+    var number = document.querySelector("input[name='number']");
+    number.addEventListener("input", function() {
+        var value = this.value; 
+        fetch(`http://127.0.0.1:8000/api/number/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ number: value }),
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Lỗi mạng');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Dữ liệu đã cập nhật:', data);
+            })
+            .catch(error => {
+                console.error('Lỗi:', error.message);
+                alert('Đã xảy ra lỗi khi cập nhật số: ' + error.message);
+            }); 
+    });
     
+}
+function updateNumber() {
+    var number = document.querySelector("input[name='number']");
+    var filter = document.querySelector("#filterSelect");
+    number.addEventListener("input", function() {
+        number.form.submit();
+        number.textContent = number.value;
+        filter.textContent = filter.value;
+    });
+    filter.addEventListener("change", function() {
+        console.log('change');
+        filter.form.submit();
+        number.textContent = number.value;
+        filter.textContent = filter.value;
+    });
+}
+document.addEventListener("DOMContentLoaded", function() { 
+    highlightSearch();
+    handlePaginationClick();
+    restoreScrollPosition();
+    updateNumber();
+});
 </script>
