@@ -1,6 +1,25 @@
 {% extends 'layout/app.html' %}
 {% load static %}
 {% block body %}
+<style>
+    .toast {
+        opacity: 1 !important;
+        background-color: #4CAF50; 
+        color: white; 
+        border-radius: 4px; 
+        border: none; 
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+        top: 60px;
+    }
+    
+    .toast-close-button {
+        color: white; 
+    }
+    
+    .toast-progress {
+        background-color: rgba(255, 255, 255, 0.5);
+    }
+</style>
     <div class="container-fluid px-4">
         <h1 class="mt-4">File Upload</h1>
         <ol class="breadcrumb mb-4">
@@ -20,11 +39,13 @@
                         </div>
                     {% endfor %}
                 </div>
-                <form action="" class="form-horizontal" method="POST" enctype="multipart/form-data">
-                    {% csrf_token %}
+                <!-- <form action="" class="form-horizontal" method="POST" id="uploadForm" enctype="multipart/form-data"> -->
+                    <!-- {% csrf_token %} -->
+                <div class="form-horizontal" id="uploadForm">
                     <!-- overlay -->
                     <div class="overlay" name="overload" style="display: none;">
                         <div class="loader"></div>
+                        <h3 class="overlay-text">Adding data ...</h3>
                     </div>
                     
                     <div class="row">
@@ -42,32 +63,109 @@
                         <div class="col-3">
                             <div class="input-group mb-3">
                                 <label class="form-label" style="align-items: center;margin-right: 10px;display: flex;">Threading: </label>
-                                <input type="number" class="form-control" name="threading" placeholder="Threading number" id="inputThreading" value="1" required min="1" max="3">
+                                <input type="number" class="form-control" name="threading" placeholder="Threading number" id="inputThreading" value="1" required min="1" max="10">
                             </div>
                         </div>
                         <div class="col-3">
                             <div class="input-group mb-3">
-                                <button class="btn btn-primary btn-block" type="submit">Submit &nbsp;&nbsp;&nbsp;<span></span></button>
+                                <button class="btn btn-primary btn-block" id="submit">Submit &nbsp;&nbsp;&nbsp;<span></span></button>
                             </div>
                         </div>
                     </div>
-                </form>
+                </div>
             </div>
         </div>
     </div>
 {% endblock %}
 {% block javascript %}
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            document.querySelector('form').addEventListener('submit', function() {
-                console.log('submit');
-                document.querySelector('.overlay').style.display = 'block';
-                if (fileInput.files.length === 0) {
-                    event.preventDefault();
-                    alert('Vui lòng chọn một tệp trước khi gửi.');
-                }
-            });
+        window.addEventListener('pageshow', function() {
+            document.getElementById('overlay').style.display = 'block';
         });
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim(); 
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+function infoSusscess(text) {
+    $(document).ready(function() {
+        toastr.options = {
+            "closeButton": true,
+            "debug": false,
+            "newestOnTop": true,
+            "progressBar": true,
+            "positionClass": "toast-top-right",
+            "preventDuplicates": true,
+            "onclick": null,
+            "showDuration": "300",
+            "hideDuration": "1000",
+            "timeOut": "1500",
+            "extendedTimeOut": "1000",
+            "showEasing": "swing",
+            "hideEasing": "linear",
+            "showMethod": "fadeIn",
+            "hideMethod": "fadeOut"
+        }
+
+        toastr.success(text);
+    });
+}
+function fetchUpload() {
+    var submit = document.getElementById("submit");
+    var number = document.querySelector("input[name='extra_quantity']");
+    var file = document.querySelector("input[name='myfile']");
+    var threading = document.querySelector("input[name='threading']");
+    
+    const formData = new FormData();
+    formData.append('myfile', file.files[0]);
+    formData.append('number', number.value);
+    formData.append('threading', threading.value);
+
+    // mở overlay
+    document.querySelector('.overlay').style.display = 'block';
+    fetch(`http://127.0.0.1:8000/api/fileupload/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: formData,
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Lỗi mạng');
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Dữ liệu đã cập nhật:', data);
+        // ẩn overlay
+        document.querySelector('.overlay').style.display = 'none';
+        infoSusscess("Upload file successfully!");
+    })
+    .catch(error => {
+        console.error('Lỗi:', error);
+        document.querySelector('.overlay').style.display = 'none';
+        infoSusscess("Upload file successfully!");
+    }); 
+    
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    var submit = document.getElementById("submit");
+    submit.addEventListener('click', function() {
+        fetchUpload();
+    });
+});
     </script>
     <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" crossorigin="anonymous"></script>
     <script src="{% static 'js/datatables-simple-demo.js' %}"></script>

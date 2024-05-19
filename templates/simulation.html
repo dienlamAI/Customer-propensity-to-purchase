@@ -1,6 +1,25 @@
 {% extends 'layout/app.html' %}
 {% load static %}
 {% block body %}
+<style>
+.toast {
+    opacity: 1 !important;
+    background-color: #4CAF50; 
+    color: white; 
+    border-radius: 4px; 
+    border: none; 
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+    top: 60px;
+}
+
+.toast-close-button {
+    color: white; 
+}
+
+.toast-progress {
+    background-color: rgba(255, 255, 255, 0.5);
+}
+</style>
 <div class="container-fluid px-4">
     <h1 class="mt-4">Simulation</h1>
     <ol class="breadcrumb mb-4">
@@ -20,8 +39,7 @@
                     </div>
                 {% endfor %}
             </div>
-            <form action="" class="form-horizontal" method="POST" enctype="multipart/form-data">
-                {% csrf_token %}
+            <div class="form-horizontal">
                 <div class="row">
                     {% for column in columns %}
                     <div class="col-4">
@@ -33,24 +51,14 @@
                             
                         </div>
                     </div>
-                    <script>
-                        document.addEventListener('DOMContentLoaded', function() { 
-                            var dropdown = document.getElementById('{{ column|lower }}');
-                            
-                            // Sửa thuộc tính name
-                            dropdown.name = '{{ column|lower }}'.replace(/ /g, '_');
-                            //  lưu local storage
-                            localStorage.setItem('check_path', 'simulation');
-                        });
-                        </script>
                     {% endfor %}
                     <div class="col-12 mt-3">
                         <div class="input-group mb-3">
-                            <button class="btn btn-primary btn-block" type="submit">Add Data &nbsp;&nbsp;&nbsp;<span></span></button>
+                            <button class="btn btn-primary btn-block" id="add-data">Add Data &nbsp;&nbsp;&nbsp;<span></span></button>
                         </div>
                     </div>
                 </div>
-            </form>
+            </div>
         </div>
     </div>    
     
@@ -58,6 +66,95 @@
 
 {% endblock %}
 {% block javascript %} 
+<script>
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim(); 
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+function infoSusscess(text) {
+    $(document).ready(function() {
+        toastr.options = {
+            "closeButton": true,
+            "debug": false,
+            "newestOnTop": true,
+            "progressBar": true,
+            "positionClass": "toast-top-right",
+            "preventDuplicates": true,
+            "onclick": null,
+            "showDuration": "300",
+            "hideDuration": "1000",
+            "timeOut": "1500",
+            "extendedTimeOut": "1000",
+            "showEasing": "swing",
+            "hideEasing": "linear",
+            "showMethod": "fadeIn",
+            "hideMethod": "fadeOut"
+        }
+
+        toastr.success(text);
+    });
+}
+function fetchSimulation(){
+    const formData = new FormData();
+    const list_column = ['{{ columns|join:"','" }}'];
+    const list_cl = [];
+    list_column.forEach(column => {
+        list_cl.push(column.toLowerCase());
+    });
+    const inputs = document.querySelectorAll('input');
+    const matchingInputs = [];
+
+    inputs.forEach(input => {
+        if (list_cl.includes(input.name)) {
+            if (input.checked === true) {
+                matchingInputs.push(1);
+            } else {
+                matchingInputs.push(0);
+            }
+        }
+    });
+    console.log(matchingInputs);
+    formData.append('data', matchingInputs);
+    fetch(`http://127.0.0.1:8000/api/simulation-api/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: formData,
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Lỗi mạng');
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Dữ liệu đã cập nhật:', data);
+        infoSusscess(data.message);
+    })
+    .catch(error => {
+        console.error('Lỗi:', error);
+    });
+}
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    var submit = document.getElementById("add-data");
+    submit.addEventListener('click', function() {
+        fetchSimulation();
+    });
+});
+</script>
     <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" crossorigin="anonymous"></script>
     <script src="{% static 'js/datatables-simple-demo.js' %}"></script>
 {% endblock %}

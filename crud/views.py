@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from crud.forms import *
 from django.views.decorators.csrf import csrf_protect
 from django.http import HttpResponseRedirect
+from django.db.models import F
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.shortcuts import render, redirect, get_object_or_404
@@ -22,7 +23,11 @@ import pickle
 import numpy as np
 import threading
 import datetime
-from .serializers import SimulationSerializer
+import json
+from .serializers import SimulationSerializer, DataSerializer
+import csv
+from django.http import HttpResponse
+from time import strftime
 
 # Register
 @csrf_protect
@@ -44,7 +49,7 @@ def register(request):
                 user.full_clean()
                 user.save()
                 messages.success(request, 'Member was created successfully!')
-                return HttpResponseRedirect('/register/success/')
+                return redirect('register_success')
             except ValidationError as e:
                 messages.error(request, 'Error: {}'.format(e))
     else:
@@ -61,13 +66,20 @@ def dashboard(request):
     get_simulation = list(get_simulation)
     get_simulation.reverse() 
     number_user = len(get_simulation)  
-    max_score = 0
-    min_score = 0  
+
+    if number_user == 0:
+        max_score = 0
+        min_score = 0
+    else:
+        max_score = get_simulation[0].score
+        min_score = get_simulation[0].score
+
     for i in get_simulation:
         if i.score > max_score:
             max_score = i.score
         if i.score < min_score:
             min_score = i.score 
+
     score_counts = {'5-10': 0, '10-30': 0, '>30': 0}
     for i in get_simulation:
         if 5 <= i.score < 10:
@@ -77,46 +89,84 @@ def dashboard(request):
         elif i.score > 30:
             score_counts['>30'] += 1 
     counts = list(score_counts.values())
-    number_potential_customers = counts[1]+counts[2]
-
+    number_potential_customers = counts[1] + counts[2]
 
     # percent
-    selected_products = request.session.get('selected_products')
-    if number_user != 0 and number_user != selected_products[0]:
-        number_user_percent = round((number_user-selected_products[0])/number_user*100, 2)
-        if max_score == 0:
+    try:
+        metrics, _ = DashboardMetrics.objects.get_or_create(
+            id=1,
+            defaults={
+                'number_user': 0,
+                'max_score': 0,
+                'min_score': 0,
+                'number_potential_customers': 0,
+                'number_user_percent': 0,
+                'max_score_percent': 0,
+                'min_score_percent': 0,
+                'number_potential_customers_percent': 0,
+            }
+        )
+
+        if number_user != 0:
+            if number_user != metrics.number_user:
+                number_user_percent = round((number_user - metrics.number_user) / number_user * 100, 2)
+                if max_score == 0:
+                    max_score_percent = 0
+                else:
+                    max_score_percent = round((max_score - metrics.max_score) / max_score * 100, 2)
+                if min_score == 0:
+                    min_score_percent = 0
+                else:
+                    min_score_percent = round((min_score - metrics.min_score) / min_score * 100, 2)
+                if number_potential_customers == 0:
+                    number_potential_customers_percent = 0
+                else:
+                    number_potential_customers_percent = round((number_potential_customers - metrics.number_potential_customers) / number_potential_customers * 100, 2)
+                
+                metrics.number_user = number_user
+                metrics.max_score = max_score
+                metrics.min_score = min_score
+                metrics.number_potential_customers = number_potential_customers
+                metrics.number_user_percent = number_user_percent
+                metrics.max_score_percent = max_score_percent
+                metrics.min_score_percent = min_score_percent
+                metrics.number_potential_customers_percent = number_potential_customers_percent
+                metrics.save()
+            else:
+                number_user_percent = metrics.number_user_percent
+                max_score_percent = metrics.max_score_percent
+                min_score_percent = metrics.min_score_percent
+                number_potential_customers_percent = metrics.number_potential_customers_percent
+        else:
+            number_user_percent = 0
             max_score_percent = 0
-        else:
-            max_score_percent = round((max_score-selected_products[1])/max_score*100, 2)
-        if min_score == 0:
             min_score_percent = 0
-        else:
-            min_score_percent = round((min_score-selected_products[2])/min_score*100, 2)
-        if number_potential_customers == 0:
             number_potential_customers_percent = 0
-        else:
-            number_potential_customers_percent = round((number_potential_customers-selected_products[3])/number_potential_customers*100, 2)
-        request.session['selected_products'] = [number_user, max_score, min_score, number_potential_customers]
-        request.session['selected_products_percent'] = [number_user_percent, max_score_percent, min_score_percent, number_potential_customers_percent]
-    elif number_user == selected_products[0]:
-        number_user_percent = request.session.get('selected_products_percent')[0]
-        max_score_percent = request.session.get('selected_products_percent')[1]
-        min_score_percent = request.session.get('selected_products_percent')[2]
-        number_potential_customers_percent = request.session.get('selected_products_percent')[3]
-    else:
-        number_user_percent = 0
-        max_score_percent = 0
-        min_score_percent = 0
-        number_potential_customers_percent = 0
-        request.session['selected_products'] = [0, 0, 0, 0]
-        request.session['selected_products_percent'] = [0, 0, 0, 0]
-    context = {'get_simulation': get_simulation, 'number_user': number_user, 
-               'max_score': round(max_score,2), 'min_score': round(min_score,4),
-               'number_potential_customers': number_potential_customers,
-               'number_user_percent': number_user_percent,
-               'max_score_percent': max_score_percent,
-               'min_score_percent': min_score_percent,
-               'number_potential_customers_percent': number_potential_customers_percent}
+
+    except DashboardMetrics.DoesNotExist:
+        metrics = DashboardMetrics.objects.create(
+            id=1,
+            number_user=0,
+            max_score=0,
+            min_score=0,
+            number_potential_customers=0,
+            number_user_percent=0,
+            max_score_percent=0,
+            min_score_percent=0,
+            number_potential_customers_percent=0
+        )
+    
+    context = {
+        'get_simulation': get_simulation,
+        'number_user': number_user,
+        'max_score': round(max_score, 2),
+        'min_score': round(min_score, 4),
+        'number_potential_customers': number_potential_customers,
+        'number_user_percent': metrics.number_user_percent,
+        'max_score_percent': metrics.max_score_percent,
+        'min_score_percent': metrics.min_score_percent,
+        'number_potential_customers_percent': metrics.number_potential_customers_percent,
+    }
     return render(request, 'dashboard.html', context)
 
 # Upload File
@@ -153,43 +203,7 @@ def process_data_chunk(df_chunk):
         simulation.save() 
 @login_required
 def fileupload(request): 
-    if request.method == 'POST' and request.FILES['myfile']:
-        myfile = request.FILES['myfile']
-        number = request.POST.get('extra_quantity')
-        threading1 = request.POST.get('threading')
-        if myfile.name.endswith('.csv') and myfile != None:   
-            try:
-                start = datetime.datetime.now()
-                df = pd.read_csv(myfile)   
-                df = df.head(int(number))
-                if len(df) >= 50:
-                    num_threads = int(threading1)
-                    chunk_size = len(df) // num_threads 
-                    chunks = [df[i:i+chunk_size] for i in range(0, len(df), chunk_size)]
-                    threads = []
-                    for chunk in chunks:
-                        t = threading.Thread(target=process_data_chunk, args=(chunk,))
-                        threads.append(t)
-                        t.start()
-                    
-                    for t in threads:
-                        t.join()   
-                    
-                else:
-                    process_data_chunk(df)
-                end = datetime.datetime.now()
-                t = end - start
-                messages.success(request, 'File was uploaded successfully!')
-                print(f'File was uploaded successfully {t}!')
-                return redirect('fileupload')
-            except Exception as e:
-                print("Lỗi khi đọc tệp CSV:", e)
-        else:
-            print("Loại tệp không được chấp nhận. Hãy chọn tệp CSV.")
-    get_simulation = Simulation.objects.all()  
-    get_simulation = list(get_simulation)
-    get_simulation.reverse() 
-    context = {'get_simulation': get_simulation}
+    context = {}
     return render(request, 'fileupload.html', context) 
 
 # Simulation 
@@ -201,86 +215,70 @@ def convert_to_score(probability, epsilon=1e-10):
 def simulation(request):
     columns = ["Basket icon click", "Basket add list", "Basket add detail", "Sort by", "Image picker", "Account page click", "Promo banner click", "Detail wishlist add", "List size dropdown", "Closed minibasket click", "Checked delivery detail", "Checked returns detail", "Sign in", "Saw checkout", "Saw sizecharts", "Saw delivery", "Saw account upgrade", "Saw homepage", "Device computer", "Device tablet", "Returning user", "Loc uk"]
     
-    if request.method == 'POST':
-        name = []
-        for column in columns:
-            column = column.lower().replace(" ", "_") 
-            n = request.POST.get(column)
-            if n == 'on':
-                name.append(1)
-            else:
-                name.append(0)
+    # if request.method == 'POST':
+    #     name = []
+    #     for column in columns:
+    #         column = column.lower().replace(" ", "_") 
+    #         n = request.POST.get(column)
+    #         if n == 'on':
+    #             name.append(1)
+    #         else:
+    #             name.append(0)
         
-        with open('D:/HK2/Kỹ_thuật_dữ_liệu/final/backend/crud/model/model_filename.pkl', 'rb') as file:
-            loaded_model = pickle.load(file)
-        simulation = Simulation(
-            user_id = uuid.uuid4(),
-            basket_icon_click = name[0],
-            basket_add_list = name[1],
-            basket_add_detail = name[2],
-            sort_by = name[3],
-            image_picker = name[4],
-            account_page_click = name[5],
-            promo_banner_click = name[6],
-            detail_wishlist_add = name[7],
-            list_size_dropdown = name[8],
-            closed_minibasket_click = name[9],
-            checked_delivery_detail = name[10],
-            checked_returns_detail = name[11],
-            sign_in = name[12],
-            saw_checkout = name[13],
-            saw_sizecharts = name[14],
-            saw_delivery = name[15],
-            saw_account_upgrade = name[16],
-            saw_homepage = name[17],
-            device_computer = name[18],
-            device_tablet = name[19],
-            returning_user = name[20],
-            loc_uk = name[21],
-            propensity = loaded_model.predict_proba([name])[:,1],
-            score = convert_to_score(loaded_model.predict_proba([name])[:,1]),
-            created_at = datetime.datetime.now(),
-            updated_at = datetime.datetime.now()
-        )
-        simulation.save()
-        messages.success(request, 'Simulation was created successfully!')
-        return redirect('simulation') 
-    get_simulation = Simulation.objects.all()  
-    get_simulation = list(get_simulation)
-    get_simulation.reverse() 
-    context = {'columns': columns, 'get_simulation': get_simulation}
+    #     with open('D:/HK2/Kỹ_thuật_dữ_liệu/final/backend/crud/model/model_filename.pkl', 'rb') as file:
+    #         loaded_model = pickle.load(file)
+    #     simulation = Simulation(
+    #         user_id = uuid.uuid4(),
+    #         basket_icon_click = name[0],
+    #         basket_add_list = name[1],
+    #         basket_add_detail = name[2],
+    #         sort_by = name[3],
+    #         image_picker = name[4],
+    #         account_page_click = name[5],
+    #         promo_banner_click = name[6],
+    #         detail_wishlist_add = name[7],
+    #         list_size_dropdown = name[8],
+    #         closed_minibasket_click = name[9],
+    #         checked_delivery_detail = name[10],
+    #         checked_returns_detail = name[11],
+    #         sign_in = name[12],
+    #         saw_checkout = name[13],
+    #         saw_sizecharts = name[14],
+    #         saw_delivery = name[15],
+    #         saw_account_upgrade = name[16],
+    #         saw_homepage = name[17],
+    #         device_computer = name[18],
+    #         device_tablet = name[19],
+    #         returning_user = name[20],
+    #         loc_uk = name[21],
+    #         propensity = loaded_model.predict_proba([name])[:,1],
+    #         score = convert_to_score(loaded_model.predict_proba([name])[:,1]),
+    #         created_at = datetime.datetime.now(),
+    #         updated_at = datetime.datetime.now()
+    #     )
+    #     simulation.save()
+    #     messages.success(request, 'Simulation was created successfully!')
+    #     return redirect('simulation') 
+    context = {'columns': columns}
     return render(request, 'simulation.html',context)
 
-# lưu file từ database
-@login_required
-# def save_file(request):
-#     get_simulation = Simulation.objects.all()  
-#     get_simulation = list(get_simulation)
-#     serializer = SimulationSerializer(get_simulation, many=True)
-#     get_simulation = serializer.data
 
-#     print(get_simulation.columns)
-#     get_simulation = pd.DataFrame(get_simulation)
-#     print(get_simulation)
 
-#     # get_simulation = get_simulation.drop(columns=['id', 'created_at', 'updated_at'])
-#     # get_simulation.to_csv('D:/HK2/Kỹ_thuật_dữ_liệu/final/backend/crud/static/file/simulation.csv', index=False)
-#     messages.success(request, 'File was saved successfully!')
-#     return redirect('simulation')
-
+@login_required 
 def save_file(request):
-    get_simulation = Simulation.objects.all()  
-    get_simulation = list(get_simulation)
-    print(get_simulation[0])
-    cls = list(get_simulation[0])
-    serializer = SimulationSerializer(get_simulation, many=True)
-    get_simulation = serializer.data
+    simulations = Simulation.objects.all()
+    file_name = f"data_{strftime('%Y-%m-%d-%H-%M')}"
 
-    l = []
-    for cl in cls:
-        l.append([i[cl] for i in get_simulation])
-    print(l)
-    return redirect('database')
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="{file_name}.csv"'
+    writer = csv.writer(response)
+    writer.writerow(['user_id', 'basket_icon_click', 'basket_add_list', 'basket_add_detail', 'sort_by', 'image_picker', 'account_page_click', 'promo_banner_click', 'detail_wishlist_add', 'list_size_dropdown', 'closed_minibasket_click', 'checked_delivery_detail', 'checked_returns_detail', 'sign_in', 'saw_checkout', 'saw_sizecharts', 'saw_delivery', 'saw_account_upgrade', 'saw_homepage', 'device_computer', 'device_tablet', 'returning_user', 'loc_uk', 'propensity', 'score'])
+
+    for i in simulations:
+        writer.writerow([i.user_id, i.basket_icon_click, i.basket_add_list, i.basket_add_detail, i.sort_by, i.image_picker, i.account_page_click, i.promo_banner_click, i.detail_wishlist_add, i.list_size_dropdown, i.closed_minibasket_click, i.checked_delivery_detail, i.checked_returns_detail, i.sign_in, i.saw_checkout, i.saw_sizecharts, i.saw_delivery, i.saw_account_upgrade, i.saw_homepage, i.device_computer, i.device_tablet, i.returning_user, i.loc_uk, i.propensity, i.score])  
+
+    return response
+
 
 @login_required
 def delete1(request, user_id): 
@@ -310,7 +308,7 @@ def database(request):
         number = request.GET.get('number', 10) 
         number = int(number)
 
-        select = request.GET.get('fiter', 'All')
+        select = request.GET.get('fiter',"All")
         if select == "All":
             get_simulation = get_simulation
         elif select == "Level 1":
@@ -324,6 +322,8 @@ def database(request):
     paginator = Paginator(get_simulation, number)
     page = request.GET.get('page')
     
+    select = select.replace(" ", "_")
+    print(select)
     try:
         data = paginator.page(page)
     except PageNotAnInteger:
@@ -421,7 +421,89 @@ class chartBar(APIView):
         scores = list(score_counts.keys())
         counts = list(score_counts.values())
         return Response({'scores': scores, 'counts': counts}, status=status.HTTP_200_OK)
-    
+
+# viết api để lấy dữ liệu từ fontend
+class FileUpload(APIView):
+    def post(self, request):
+        print("request.data: ", request.data) 
+        myfile = request.data.get('myfile')
+        number = request.data.get('number')
+        threading1 = request.data.get('threading')
+        if myfile.name.endswith('.csv') and myfile != None:   
+            try:
+                start = datetime.datetime.now()
+                df = pd.read_csv(myfile)   
+                df = df.head(int(number))
+                if len(df) >= 50:
+                    num_threads = int(threading1)
+                    chunk_size = len(df) // num_threads 
+                    chunk_size = (len(df) + num_threads - 1) // num_threads
+                    chunks = [df[i:i+chunk_size] for i in range(0, len(df), chunk_size)]
+                    threads = []
+                    for chunk in chunks:
+                        t = threading.Thread(target=process_data_chunk, args=(chunk,))
+                        threads.append(t)
+                        t.start()
+                    
+                    for t in threads:
+                        t.join()   
+                    
+                else:
+                    process_data_chunk(df)
+                end = datetime.datetime.now()
+                t = end - start
+                messages.success(request, 'File was uploaded successfully!')
+                print(f'File was uploaded successfully {t}!')
+                return redirect('fileupload')
+            except Exception as e:
+                print("Lỗi khi đọc tệp CSV:", e)
+        else:
+            print("Loại tệp không được chấp nhận. Hãy chọn tệp CSV.")
+        return Response({'message': 'File was uploaded successfully!'}, status=status.HTTP_200_OK)
+
+class SimulationAPI(APIView):
+    def post(self, request):
+        name = request.data.get('data')
+        name = name.split(',')
+        name = [int(i) for i in name]
+        print(len(name))
+        with open('D:/HK2/Kỹ_thuật_dữ_liệu/final/backend/crud/model/model_filename.pkl', 'rb') as file:
+            loaded_model = pickle.load(file)
+
+        propensity = loaded_model.predict_proba([name])[:, 1][0] 
+        score = convert_to_score(propensity)
+        simulation = Simulation(
+            user_id = uuid.uuid4(),
+            basket_icon_click = name[0],
+            basket_add_list = name[1],
+            basket_add_detail = name[2],
+            sort_by = name[3],
+            image_picker = name[4],
+            account_page_click = name[5],
+            promo_banner_click = name[6],
+            detail_wishlist_add = name[7],
+            list_size_dropdown = name[8],
+            closed_minibasket_click = name[9],
+            checked_delivery_detail = name[10],
+            checked_returns_detail = name[11],
+            sign_in = name[12],
+            saw_checkout = name[13],
+            saw_sizecharts = name[14],
+            saw_delivery = name[15],
+            saw_account_upgrade = name[16],
+            saw_homepage = name[17],
+            device_computer = name[18],
+            device_tablet = name[19],
+            returning_user = name[20],
+            loc_uk = name[21],
+            propensity = propensity,
+            score = score,
+            created_at = datetime.datetime.now(),
+            updated_at = datetime.datetime.now()
+        )
+        simulation.save()
+        return Response({'message': 'Simulation was created successfully!'}, status=status.HTTP_200_OK)
+
 # class getData(APIView): 
 #     def post(self, request):
 #         get_simulation = Simulation.objects.all()

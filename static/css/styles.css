@@ -11731,6 +11731,16 @@ body {
   background-color: rgba(0, 0, 0, 0.5); /* Màu nền đen trong suốt */
   z-index: 9999; /* Đảm bảo hiển thị trên tất cả các phần tử khác */
 }
+.overlay-text{
+  color: #fff;
+  top: 60%;
+  left: 50%;
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-size: 80;
+  font-weight: bold;
+
+}
 .loader {
   width: 80px;
   height: 80px;

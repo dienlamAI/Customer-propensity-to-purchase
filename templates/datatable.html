@@ -13,23 +13,23 @@
                         <option value="Level 1">Level 1</option>
                         <option value="Level 2">Level 2</option>
                         <option value="Level 3">Level 3</option>
-                        {% elif select == "Level 1" %}
+                        {% elif select == "Level_1" %}
                         <option value="All">All</option>
                         <option value="Level 1" selected>Level 1</option>
                         <option value="Level 2">Level 2</option>
                         <option value="Level 3">Level 3</option>
-                        {% elif select == "Level 2" %}
+                        {% elif select == "Level_2" %}
                         <option value="All">All</option>
                         <option value="Level 1">Level 1</option>
                         <option value="Level 2" selected>Level 2</option>
                         <option value="Level 3">Level 3</option>
-                        {% elif select == "Level 3" %}
+                        {% elif select == "Level_3" %}
                         <option value="All">All</option>
                         <option value="Level 1">Level 1</option>
                         <option value="Level 2">Level 2</option>
                         <option value="Level 3" selected>Level 3</option>
                         {% endif %}
-                    </select>
+                    </select>     
                 </div>
             </div>
             <div class="input-group me-2" data-toggle="tooltip" data-placement="top" title="Number data">
@@ -283,5 +283,6 @@ document.addEventListener("DOMContentLoaded", function() {
     handlePaginationClick();
     restoreScrollPosition();
     updateNumber();
+
 });
 </script>

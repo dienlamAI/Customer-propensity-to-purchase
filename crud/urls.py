@@ -1,5 +1,5 @@
 from . import views
-from .views import chartPie, chartBar
+from .views import chartPie, chartBar, FileUpload, SimulationAPI
 from django.urls import path
 from django.conf.urls import handler404
 
@@ -21,6 +21,8 @@ urlpatterns = [
     # API
     path('api/chart-pie/', chartPie.as_view(), name='api_chart_pie'),
     path('api/chart-bar/', chartBar.as_view(), name='api_chart_bar'),
+    path('api/fileupload/', FileUpload.as_view(), name='api_fileupload'),
+    path('api/simulation-api/', SimulationAPI.as_view(), name='api_simulation_api'),
     # path('api/data/', getData.as_view(), name='api_data'),
     # path('api/number/', getNumber.as_view(), name='api_number'),
 ]

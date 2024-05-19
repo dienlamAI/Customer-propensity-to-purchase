@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import models
+import uuid
 
 
 # Create your models here.
@@ -45,3 +46,15 @@ class Simulation(models.Model):
     created_at = models.DateTimeField('%m/%d/%Y %H:%M:%S')
     updated_at = models.DateTimeField('%m/%d/%Y %H:%M:%S')
     
+class DashboardMetrics(models.Model):
+    number_user = models.IntegerField()
+    max_score = models.FloatField()
+    min_score = models.FloatField()
+    number_potential_customers = models.IntegerField()
+    number_user_percent = models.FloatField()
+    max_score_percent = models.FloatField()
+    min_score_percent = models.FloatField()
+    number_potential_customers_percent = models.FloatField()
+
+    def __str__(self):
+        return f"Dashboard Metrics {self.id}"
