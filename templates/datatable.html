@@ -1,13 +1,14 @@
+{% load custom_filters %}
 <div class="card mb-4">
     <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
         <div style="display: flex; align-items: center;">
             <i class="fas fa-table me-1"></i>
             Data Table
         </div>
-        <form class="simulation-right"  id="pagination-form" method="GET" style="display: flex; align-items: center; justify-content: center;">
-            <div class="form-group"> 
-                <div class="form-group select-with-icon">
-                    <select class="form-control" data-toggle="tooltip" data-placement="top" title="Level of potential customers" style="width: 95px; margin-right: 7px;" name="fiter" id="filterSelect">
+        <div class="simulation-right" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: nowrap;">
+            <form id="pagination-form"  role="form" action="" method="GET" style="display: flex; align-items: center; justify-content: center; flex-wrap: nowrap;">
+                <div class="form-group select-with-icon" style="margin-right: 10px;">
+                    <select class="form-control" data-toggle="tooltip" data-placement="top" title="Level of potential customers" style="width: 95px;" name="filter" id="filterSelect">
                         {% if select == "All" %}
                         <option value="All" selected>All</option>
                         <option value="Level 1">Level 1</option>
@@ -31,22 +32,63 @@
                         {% endif %}
                     </select>     
                 </div>
-            </div>
-            <div class="input-group me-2" data-toggle="tooltip" data-placement="top" title="Number data">
-                <input type="number" value="{{ number }}" style="width: 70px;" min="10" id="number" name="number" class="form-control" aria-describedby="basic-addon2" onchange="updateNumber()">
-            </div>
-            <div class="input-group me-2" data-toggle="tooltip" data-placement="top" title="Search user ID">
-                <input type="text" name="search" class="form-control" placeholder="Search user ID..." aria-label="Search" aria-describedby="basic-addon2" style="width: 130px;"> 
-            </div>  
-            <a class="btn btn-sm btn-danger" data-toggle="tooltip" data-placement="top" title="Delete All" href="{% url 'delete_all' %}" style="display: flex; align-items: center; white-space: nowrap; margin-right: 7px;">
+                <div class="input-group me-2" style="margin-right: 10px;" data-toggle="tooltip" data-placement="top" title="Number data">
+                    <input type="number" value="{{ number }}" style="width: 70px;" min="10" id="number" name="number" class="form-control" aria-describedby="basic-addon2" onchange="updateNumber()">
+                </div>
+                <div class="input-group me-2" style="margin-right: 10px;" data-toggle="tooltip" data-placement="top" title="Search user ID">
+                    <input type="text" name="search" class="form-control" placeholder="Search user ID..." aria-label="Search" aria-describedby="basic-addon2" style="width: 130px;"> 
+                </div>
+            </form>
+            <button class="btn btn-sm btn-primary" data-toggle="modal" data-placement="top" title="Filter" data-target="#filterModal" style="display: flex; align-items: center; white-space: nowrap; margin-right: 10px;">
+                <span class="fa fa-filter" style="display: inline-block;"></span>&nbsp; Filter
+            </button>
+            <a class="btn btn-sm btn-danger" data-toggle="tooltip" data-placement="top" title="Delete All" href="{% url 'delete_all' %}" style="display: flex; align-items: center; white-space: nowrap; margin-right: 10px;">
                 <span class="fa fa-trash" style="display: inline-block;"></span>&nbsp; Delete All
             </a>
-            <!-- Tạo thẻ lưu file -->
-            <a class="btn btn-sm btn-success" data-toggle="tooltip" data-placement="top" title="Export file" href="{% url 'save_file' %}" style="display: flex; align-items: center; white-space: nowrap;">
+            <a class="btn btn-sm btn-success" data-toggle="tooltip" data-placement="top" title="Export file" href="{% url 'save_file' %}" style="display: flex; align-items: center; white-space: nowrap; margin-right: 10px;">
                 <span class="fa fa-download" style="display: inline-block;"></span>&nbsp; Export
             </a>
-    
-        </form>
+        </div>
+        <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Filters</h5>
+                        <div>
+                            <button type="button" class="btn btn-secondary" id="default-filter">Default</button>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="border: none;background: none;">
+                                <span aria-hidden="true" style="font-size: 30px;">&times;</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="modal-body">
+                        <div class="is-selected mb-3">
+                            <div class="label-select">Is selected</div>
+                            <div class="frame-selected">
+                                {% for col in value_col %}
+                                    {% if col != "N" %}
+                                        <div class="item">{{col}}</div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="not-selected">
+                            <div class="label-select">Not selected</div>
+                            <div class="frame-not-selected">
+                                {% for col in value_not_col %}
+                                    {% if col != "N" %}
+                                        <div class="item">{{col}}</div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" id="save-filters">Save changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>    
     </div>
     <div class="card-body">
         {% for message in messages %}
@@ -61,68 +103,79 @@
                         <tr>
                             <th></th>
                             <th style="white-space: nowrap;">User ID</th>
-                            <th>Basket icon click</th>
-                            <th>Basket add list</th>
-                            <th>Basket add detail</th>
-                            <th>Sort by</th>
-                            <th>Image picker</th>
-                            <th>Account page click</th>
-                            <th>Promo banner click</th>
-                            <th>Detail wishlist add</th>
-                            <th>List size dropdown</th>
-                            <th>Closed minibasket click</th>
-                            <th>Checked delivery detail</th>
-                            <th>Checked returns detail</th>
-                            <th>Sign in</th>
-                            <th>Saw checkout</th>
-                            <th>Saw sizecharts</th>
-                            <th>Saw delivery</th>
-                            <th>Saw account upgrade</th>
-                            <th>Saw homepage</th>
-                            <th>Device computer</th>
-                            <th>Device tablet</th>
-                            <th>Returning user</th>
-                            <th>Loc uk</th>
-                            <th>Propensity</th>
+                            {% for col in value_col %}
+                                {% if col != "N" %}
+                                <th>{{ col }}</th>
+                                {% endif %}
+                            {% endfor %}
                             <th style="color: green;">Score</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for i in data.object_list %}
-                        <tr>
-                            <td data-toggle="tooltip" data-placement="top" title="Delete {{i.user_id}}">
-                                <a class="btn btn-sm btn-danger" id="del" href="{% url 'delete' i.user_id %}" style="display: flex; align-items: center; white-space: nowrap;">
-                                    <span class="fa fa-trash" style="margin-right: 3px;"></span>Delete
-                                </a>
-                            </td>
-                            <td style="white-space: nowrap;">{{i.user_id}}</td>
-                            <td>{{i.basket_icon_click}}</td>
-                            <td>{{i.basket_add_list}}</td>
-                            <td>{{i.basket_add_detail}}</td>
-                            <td>{{i.sort_by}}</td>
-                            <td>{{i.image_picker}}</td>
-                            <td>{{i.account_page_click}}</td>
-                            <td>{{i.promo_banner_click}}</td>
-                            <td>{{i.detail_wishlist_add}}</td>
-                            <td>{{i.list_size_dropdown}}</td>
-                            <td>{{i.closed_minibasket_click}}</td>
-                            <td>{{i.checked_delivery_detail}}</td>
-                            <td>{{i.checked_returns_detail}}</td>
-                            <td>{{i.sign_in}}</td>
-                            <td>{{i.saw_checkout}}</td>
-                            <td>{{i.saw_sizecharts}}</td>
-                            <td>{{i.saw_delivery}}</td>
-                            <td>{{i.saw_account_upgrade}}</td>
-                            <td>{{i.saw_homepage}}</td>
-                            <td>{{i.device_computer}}</td>
-                            <td>{{i.device_tablet}}</td>
-                            <td>{{i.returning_user}}</td>
-                            <td>{{i.loc_uk}}</td>
-                            <td>{{i.propensity}}</td>
-                            <td style="color: green;">{{i.score}}</td>
-                        </tr>
+                        {% for i in data %}
+                            <tr>
+                                <td>
+                                    <div style="display: flex; gap: 10px; align-items: center;">
+                                        <a class="btn btn-sm btn-danger" id="del" href="{% url 'delete' i.user_id %}" data-toggle="tooltip" data-placement="top" style="display: flex; align-items: center; white-space: nowrap;" title="Delete {{ i.user_id }}">
+                                            <span class="fa fa-trash" style="margin-right: 3px;"></span>Delete
+                                        </a>
+                                        <a class="btn btn-sm btn-success" id="edit" href="#" data-toggle="modal" data-placement="top" title="Editer" data-target="#EditModal" style="display: flex; align-items: center; white-space: nowrap;" title="Edit {{ i.user_id }}">
+                                            <span class="fa fa-edit" style="margin-right: 3px;"></span>Edit
+                                        </a>
+                                    </div>
+                                </td>                                
+                                <td style="white-space: nowrap; cursor: pointer; color: rgb(17, 60, 153); text-decoration: underline;" data-toggle="modal" data-target="#userModal">
+                                    {{ i.user_id }}
+                                </td>
+                                {% for key in key_col %}
+                                    {% if key != "N" %}
+                                        <td>{{ i|get_item:key }}</td>
+                                    {% else %}
+                                        
+                                    {% endif %}
+                                {% endfor %}
+                                <td style="color: green;">{{ i.score }}</td>
+                            </tr>
                         {% endfor %}
                     </tbody>
+                    <div class="modal fade" id="EditModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="exampleModalLabel">Edit</h5>
+                                    <div>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="border: none;background: none;">
+                                            <span aria-hidden="true" style="font-size: 30px;">&times;</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="modal-body">
+                                    
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-primary" id="save-editer">Save changes</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>    
+                    <div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="exampleModalLabel">UserID information</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="border: none;background: none;">
+                                        <span aria-hidden="true" style="font-size: 30px;">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="info-user-id"></div>
+                                    <div class="info-score"></div>
+                                    <div class="info-level"></div>
+                                    <div class="rank"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>             
                 </table>
             </div>
             <nav id="pagination-nav" aria-label="Page navigation" style="margin-top: 10px;margin-bottom: 0;">
@@ -200,7 +253,7 @@ function handlePaginationClick() {
 
     paginationLinks.forEach(function(link) {
         link.addEventListener('click', function(event) {
-            event.preventDefault();
+            // event.preventDefault();
             const scrollPosition = window.scrollY;
             const url = event.target.closest('a').href;
 
@@ -215,7 +268,6 @@ function handlePaginationClick() {
 
 function restoreScrollPosition() {
     const storedScrollPosition = localStorage.getItem('scrollPosition');
-    console.log(storedScrollPosition);
     if (storedScrollPosition !== null) {
         window.scrollTo(0, parseInt(storedScrollPosition, 10));
         localStorage.removeItem('scrollPosition');
@@ -278,11 +330,284 @@ function updateNumber() {
         filter.textContent = filter.value;
     });
 }
+
+function analysisUserID(){
+    const allUserID = document.querySelectorAll("tbody td:nth-child(2)");
+    allUserID.forEach(function(userID) {
+        userID.addEventListener("click", function() {
+            const userIDValue = userID.textContent;
+            const csrftoken = getCookie('csrftoken');
+
+            if (!csrftoken) {
+                console.error('Không tìm thấy CSRF token');
+                return;
+            }
+
+            fetch('http://127.0.0.1:8000/api/analysis-userID/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken,
+                },
+                body: JSON.stringify({ user_id: userIDValue }),
+            })
+            .then(response => {
+                if (!response.ok) {
+                    console.error('Lỗi phản hồi từ server:', response.status, response.statusText);
+                    throw new Error('Lỗi mạng');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Dữ liệu đã cập nhật:', data);
+                const infoUserID = document.querySelector('.info-user-id');
+                const infoScore = document.querySelector('.info-score');
+                const infoLevel = document.querySelector('.info-level');
+                const rank = document.querySelector('.rank');
+                infoUserID.innerHTML = `<strong>User ID:</strong> ${data.data.user_id}`;
+                infoScore.innerHTML = `<strong>Score:</strong> ${data.data.score}`;
+                if (parseFloat(data.data.score) > 30){
+                    infoLevel.innerHTML = `<strong>Level:</strong> Level 1`;
+                    rank.innerHTML = `<strong>Rank:</strong> Gold <i class="fas fa-medal" style="color: gold;"></i>`;
+                } else if (parseFloat(data.data.score) > 20){
+                    infoLevel.innerHTML = `<strong>Level:</strong> Level 2`;
+                    rank.innerHTML = `<strong>Rank:</strong> Silver <i class="fas fa-medal" style="color: silver;"></i>`;
+                } else if (parseFloat(data.data.score) > 10) {
+                    infoLevel.innerHTML = `<strong>Level:</strong> Level 3`;
+                    rank.innerHTML = `<strong>Rank:</strong> Bronze <i class="fas fa-medal" style="color: #cd7f32;"></i>`;
+                } else {
+                    rank.innerHTML = `<strong>Rank:</strong> Normal`;
+                }
+            })
+            .catch(error => {
+                console.error('Lỗi:', error.message);
+            });
+        });
+    });
+}
+function isSelect(){
+    $(document).ready(function(){
+        $('.frame-selected').on('click', '.item', function(){
+            $(this).appendTo('.frame-not-selected');
+        });
+
+        $('.frame-not-selected').on('click', '.item', function(){
+            $(this).appendTo('.frame-selected');
+        });
+    });
+}
+function saveFilter(){
+    var selected = document.querySelector('.frame-selected');
+    var notSelected = document.querySelector('.frame-not-selected');
+    var selectedItems = selected.querySelectorAll('.item');
+    var notSelectedItems = notSelected.querySelectorAll('.item');
+    var selectedValues = [];
+    var notSelectedValues = [];
+
+    selectedItems.forEach(function(item) {
+        selectedValues.push(item.textContent);
+    });
+
+    notSelectedItems.forEach(function(item) {
+        notSelectedValues.push(item.textContent);
+    });
+
+    //  gửi yêu cầu về server
+    const formData = new FormData();
+    const csrftoken = getCookie('csrftoken');
+
+    formData.append('selected', selectedValues);
+    formData.append('notselected', notSelectedValues);
+    fetch('http://127.0.0.1:8000/api/is-selected/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrftoken,
+        },
+        body: formData,
+    })
+    .then(response => {
+        if (!response.ok) {
+            console.error('Lỗi phản hồi từ server:', response.status, response.statusText);
+            throw new Error('Lỗi mạng');
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Success:', data);
+        location.reload();
+    })
+    .catch(error => {
+        console.error('Lỗi:', error.message);
+    });
+}
+function defaultFilter(){
+    const defaultFilter = document.querySelector('#default-filter');
+    const selected = document.querySelector('.frame-selected');
+    const notSelected = document.querySelector('.frame-not-selected');
+    defaultFilter.addEventListener('click', function() {
+        selected.innerHTML = '';
+        notSelected.innerHTML = '';
+        selected.innerHTML = `
+            <div class="item">Basket icon click</div>
+            <div class="item">Basket add list</div>
+            <div class="item">Basket add detail</div>
+            <div class="item">Sort by</div>
+            <div class="item">Image picker</div>
+            <div class="item">Account page click</div>
+            <div class="item">Promo banner click</div>
+            <div class="item">Detail wishlist add</div>
+            <div class="item">List size dropdown</div>
+            <div class="item">Closed minibasket click</div>
+            <div class="item">Checked delivery detail</div>
+            <div class="item">Checked returns detail</div>
+            <div class="item">Sign in</div>
+            <div class="item">Saw checkout</div>
+            <div class="item">Saw sizecharts</div>
+            <div class="item">Saw delivery</div>
+            <div class="item">Saw account upgrade</div>
+            <div class="item">Saw homepage</div>
+            <div class="item">Device computer</div>
+            <div class="item">Device tablet</div>
+            <div class="item">Returning user</div>
+            <div class="item">Loc uk</div>
+            <div class="item">Propensity</div>
+        `;
+
+    });
+
+}
+function infoSusscess(text) {
+    $(document).ready(function() {
+        toastr.options = {
+            "closeButton": true,
+            "debug": false,
+            "newestOnTop": true,
+            "progressBar": true,
+            "positionClass": "toast-top-right",
+            "preventDuplicates": true,
+            "onclick": null,
+            "showDuration": "300",
+            "hideDuration": "1000",
+            "timeOut": "1500",
+            "extendedTimeOut": "1000",
+            "showEasing": "swing",
+            "hideEasing": "linear",
+            "showMethod": "fadeIn",
+            "hideMethod": "fadeOut"
+        }
+
+        toastr.success(text);
+    });
+}
+function editData(){
+    const name_col = ['Basket icon click', 'Basket add list', 'Basket add detail', 'Sort by', 'Image picker', 'Account page click', 'Promo banner click', 'Detail wishlist add', 'List size dropdown', 'Closed minibasket click', 'Checked delivery detail', 'Checked returns detail', 'Sign in', 'Saw checkout', 'Saw sizecharts', 'Saw delivery', 'Saw account upgrade', 'Saw homepage', 'Device computer', 'Device tablet', 'Returning user', 'Loc uk'];
+    const editModal = document.querySelector('#EditModal .modal-body');
+    var userID;
+    const allRows = document.querySelectorAll("tbody tr");
+    allRows.forEach(function(row) {
+        const editButton = row.querySelector('#edit');
+        editButton.addEventListener('click', function() {
+            const l_edit = [];
+            var userID0 = row.querySelector('td:nth-child(2)').textContent;
+            userID = userID0;
+            const title = document.querySelector('#EditModal .modal-title');
+            title.textContent = `Edit: ${userID0}`;
+
+            const backetIconClick = row.querySelector('td:nth-child(3)').textContent;
+            const backetAddList = row.querySelector('td:nth-child(4)').textContent;
+            const backetAddDetail = row.querySelector('td:nth-child(5)').textContent;
+            const sortBy = row.querySelector('td:nth-child(6)').textContent;
+            const imagePicker = row.querySelector('td:nth-child(7)').textContent;
+            const accountPageClick = row.querySelector('td:nth-child(8)').textContent;
+            const promoBannerClick = row.querySelector('td:nth-child(9)').textContent;
+            const detailWishlistAdd = row.querySelector('td:nth-child(10)').textContent;
+            const listSizeDropdown = row.querySelector('td:nth-child(11)').textContent;
+            const closedMinibasketClick = row.querySelector('td:nth-child(12)').textContent;
+            const checkedDeliveryDetail = row.querySelector('td:nth-child(13)').textContent;
+            const checkedReturnsDetail = row.querySelector('td:nth-child(14)').textContent;
+            const signIn = row.querySelector('td:nth-child(15)').textContent;
+            const sawCheckout = row.querySelector('td:nth-child(16)').textContent;
+            const sawSizecharts = row.querySelector('td:nth-child(17)').textContent;
+            const sawDelivery = row.querySelector('td:nth-child(18)').textContent;
+            const sawAccountUpgrade = row.querySelector('td:nth-child(19)').textContent;
+            const sawHomepage = row.querySelector('td:nth-child(20)').textContent;
+            const deviceComputer = row.querySelector('td:nth-child(21)').textContent;
+            const deviceTablet = row.querySelector('td:nth-child(22)').textContent;
+            const returningUser = row.querySelector('td:nth-child(23)').textContent;
+            const locUk = row.querySelector('td:nth-child(24)').textContent;
+            l_edit.push(backetIconClick, backetAddList, backetAddDetail, sortBy, imagePicker, accountPageClick, promoBannerClick, detailWishlistAdd, listSizeDropdown, closedMinibasketClick, checkedDeliveryDetail, checkedReturnsDetail, signIn, sawCheckout, sawSizecharts, sawDelivery, sawAccountUpgrade, sawHomepage, deviceComputer, deviceTablet, returningUser, locUk);
+            
+            editModal.innerHTML = '';
+            var newDiv = document.createElement("div");
+            newDiv.className = "row";
+            editModal.appendChild(newDiv);
+            for (let i = 0; i < l_edit.length; i++) {
+                const checked = l_edit[i] == 1 ? 'checked' : '';
+                newDiv.innerHTML += `
+                    <div class="col-4">
+                        <div class="input-group mb-3">
+                            <label class="form-label">${name_col[i]}</label>
+                            <div class="form-check form-switch ms-auto">
+                                <input class="form-check-input" type="checkbox" id="${name_col[i].toLowerCase()}" name="${name_col[i].toLowerCase()}" ${checked}>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+    });
+
+    const saveEditer = document.querySelector('#save-editer');
+    saveEditer.addEventListener('click', function() {
+        const list_checkbox = editModal.querySelectorAll('.form-check-input');
+        const list_input = [];
+        list_checkbox.forEach(function(checkbox) {
+            if (checkbox.checked === true) {
+                list_input.push(1);
+            } else {
+                list_input.push(0);
+            }
+        });
+        const formData = new FormData();
+        formData.append('user_id', userID);
+        formData.append('list_input', list_input);
+        fetch(`http://127.0.0.1:8000/api/edit-userID/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: formData,
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Lỗi mạng');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Dữ liệu đã cập nhật:', data);
+            infoSusscess(data.data);
+            location.reload();
+        })
+        .catch(error => {
+            console.error('Lỗi:', error);
+        });
+    });
+}
+
 document.addEventListener("DOMContentLoaded", function() { 
     highlightSearch();
     handlePaginationClick();
     restoreScrollPosition();
     updateNumber();
+    analysisUserID();
+    isSelect();
 
+    const saveFilters = document.querySelector('#save-filters');
+    saveFilters.addEventListener('click', function() {
+        saveFilter();
+    });
+    defaultFilter();
+    editData();
 });
 </script>

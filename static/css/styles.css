@@ -11802,3 +11802,38 @@ body {
 .table-responsive {
   overflow-x: auto;
 }
+
+/* filter */
+.frame-selected, .frame-not-selected {
+  border: 1px solid #ddd;
+  padding: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start; 
+  gap: 5px;
+}
+
+.item {
+  user-select: none;
+  cursor: pointer;
+  margin: 5px 0;
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+  white-space: nowrap; 
+  line-height: 1.5;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  height: auto; 
+}
+
+.item:hover {
+  background-color: #e9ecef;
+}
+
+.label-select {
+  font-weight: bold;
+  margin-bottom: 10px;
+}

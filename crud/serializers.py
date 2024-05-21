@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Simulation
+from .models import *
 
 class SimulationSerializer(serializers.ModelSerializer):
     class Meta:

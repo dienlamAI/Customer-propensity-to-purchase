@@ -58,3 +58,10 @@ class DashboardMetrics(models.Model):
 
     def __str__(self):
         return f"Dashboard Metrics {self.id}"
+
+class IsSelect(models.Model):
+    select = models.TextField(null=True,blank=True)
+    not_select = models.TextField(null=True,blank=True)
+
+    def __str__(self):
+        return f"Is Select {self.id}"

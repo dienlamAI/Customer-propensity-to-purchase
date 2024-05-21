@@ -7,3 +7,4 @@ from .models import *
 admin.site.register(Member)
 admin.site.register(Simulation)
 admin.site.register(DashboardMetrics)
+admin.site.register(IsSelect)

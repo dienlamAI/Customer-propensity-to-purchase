@@ -80,14 +80,14 @@ def dashboard(request):
         if i.score < min_score:
             min_score = i.score 
 
-    score_counts = {'5-10': 0, '10-30': 0, '>30': 0}
+    score_counts = {'<10': 0, '10-30': 0, '>30': 0}
     for i in get_simulation:
-        if 5 <= i.score < 10:
-            score_counts['5-10'] += 1
+        if i.score < 10:
+            score_counts['<10'] += 1
         elif 10 <= i.score <= 30:
             score_counts['10-30'] += 1
         elif i.score > 30:
-            score_counts['>30'] += 1 
+            score_counts['>30'] += 1
     counts = list(score_counts.values())
     number_potential_customers = counts[1] + counts[2]
 
@@ -214,51 +214,7 @@ def convert_to_score(probability, epsilon=1e-10):
 @login_required
 def simulation(request):
     columns = ["Basket icon click", "Basket add list", "Basket add detail", "Sort by", "Image picker", "Account page click", "Promo banner click", "Detail wishlist add", "List size dropdown", "Closed minibasket click", "Checked delivery detail", "Checked returns detail", "Sign in", "Saw checkout", "Saw sizecharts", "Saw delivery", "Saw account upgrade", "Saw homepage", "Device computer", "Device tablet", "Returning user", "Loc uk"]
-    
-    # if request.method == 'POST':
-    #     name = []
-    #     for column in columns:
-    #         column = column.lower().replace(" ", "_") 
-    #         n = request.POST.get(column)
-    #         if n == 'on':
-    #             name.append(1)
-    #         else:
-    #             name.append(0)
-        
-    #     with open('D:/HK2/Kỹ_thuật_dữ_liệu/final/backend/crud/model/model_filename.pkl', 'rb') as file:
-    #         loaded_model = pickle.load(file)
-    #     simulation = Simulation(
-    #         user_id = uuid.uuid4(),
-    #         basket_icon_click = name[0],
-    #         basket_add_list = name[1],
-    #         basket_add_detail = name[2],
-    #         sort_by = name[3],
-    #         image_picker = name[4],
-    #         account_page_click = name[5],
-    #         promo_banner_click = name[6],
-    #         detail_wishlist_add = name[7],
-    #         list_size_dropdown = name[8],
-    #         closed_minibasket_click = name[9],
-    #         checked_delivery_detail = name[10],
-    #         checked_returns_detail = name[11],
-    #         sign_in = name[12],
-    #         saw_checkout = name[13],
-    #         saw_sizecharts = name[14],
-    #         saw_delivery = name[15],
-    #         saw_account_upgrade = name[16],
-    #         saw_homepage = name[17],
-    #         device_computer = name[18],
-    #         device_tablet = name[19],
-    #         returning_user = name[20],
-    #         loc_uk = name[21],
-    #         propensity = loaded_model.predict_proba([name])[:,1],
-    #         score = convert_to_score(loaded_model.predict_proba([name])[:,1]),
-    #         created_at = datetime.datetime.now(),
-    #         updated_at = datetime.datetime.now()
-    #     )
-    #     simulation.save()
-    #     messages.success(request, 'Simulation was created successfully!')
-    #     return redirect('simulation') 
+
     context = {'columns': columns}
     return render(request, 'simulation.html',context)
 
@@ -287,6 +243,7 @@ def delete1(request, user_id):
     messages.success(request, 'Data was deleted successfully!') 
     return redirect('database')
 
+
 @login_required
 def delete_all(request):
     Simulation.objects.all().delete()
@@ -304,34 +261,72 @@ def database(request):
     get_simulation.reverse() 
 
     # Pagination
+    number = 10
+    select1 = "All"
     if request.method == 'GET':
         number = request.GET.get('number', 10) 
         number = int(number)
 
-        select = request.GET.get('fiter',"All")
-        if select == "All":
+        select1 = request.GET.get('filter',"All")
+        print("select: ", select1)
+        if select1 == "All":
             get_simulation = get_simulation
-        elif select == "Level 1":
+        elif select1 == "Level 1":
             get_simulation = [i for i in get_simulation if i['score'] >30] 
-        elif select == "Level 2":
+        elif select1 == "Level 2":
             get_simulation = [i for i in get_simulation if 20 <= i['score'] <= 30] 
-        elif select == "Level 3":
+        elif select1 == "Level 3":
             get_simulation = [i for i in get_simulation if 10 <= i['score'] < 20]
-    else:
-        number = 10
     paginator = Paginator(get_simulation, number)
     page = request.GET.get('page')
     
-    select = select.replace(" ", "_")
-    print(select)
+    select1 = select1.replace(" ", "_")
     try:
         data = paginator.page(page)
     except PageNotAnInteger:
         data = paginator.page(1)
     except EmptyPage:
         data = paginator.page(paginator.num_pages) 
-    context = {'get_simulation': get_simulation, 'data': data, 'number': number, 'select': select}
+
+
+    # fiter
+    dic_cols = {"basket_icon_click":"Basket icon click", "basket_add_list":"Basket add list", "basket_add_detail":"Basket add detail", "sort_by":"Sort by", "image_picker":"Image picker", "account_page_click":"Account page click", "promo_banner_click":"Promo banner click", "detail_wishlist_add":"Detail wishlist add", "list_size_dropdown":"List size dropdown", "closed_minibasket_click":"Closed minibasket click", "checked_delivery_detail":"Checked delivery detail", "checked_returns_detail":"Checked returns detail", "sign_in":"Sign in", "saw_checkout":"Saw checkout", "saw_sizecharts":"Saw sizecharts", "saw_delivery":"Saw delivery", "saw_account_upgrade":"Saw account upgrade", "saw_homepage":"Saw homepage", "device_computer":"Device computer", "device_tablet":"Device tablet", "returning_user":"Returning user", "loc_uk":"Loc uk", "propensity":"Propensity"}
+    value_col_str = ",".join(dic_cols.values())
+
+    try:
+        isSelect, _ = IsSelect.objects.get_or_create(
+            id=1,
+            defaults={
+                'select': value_col_str,
+                'not_select': 'N'
+            }
+        )
+    except IsSelect.DoesNotExist:
+        isSelect, _ = IsSelect.objects.get_or_create(
+            id=1,
+            defaults={
+                'select': value_col_str,
+                'not_select': 'N'
+            }
+        )
+    if isSelect:
+        value_col = isSelect.select
+        if value_col != '':
+            value_col = value_col.split(",")
+        else:
+            value_col = []
+        value_not_col = isSelect.not_select
+        if value_not_col != '':
+            value_not_col = value_not_col.split(",")
+        else:
+            value_not_col = []
+        
+        key_col = [i.replace(" ", "_").lower() for i in value_col]
+
+    context = {'get_simulation': get_simulation, 'data': data, 'number': number, 'select': select1,
+               'value_col': value_col, 'value_not_col': value_not_col, 'key_col': key_col}
     return render(request, 'database.html', context)
+
 
 # User
 @login_required
@@ -390,14 +385,77 @@ def custom_404(request, exception):
     return render(request, '404.html', status=404)
 
 #  API
+class editUserID(APIView):
+    def post(self, request):
+        user_id = request.data.get('user_id').strip()
+        list_col = request.data.get('list_input').split(",")
+        list_col = [int(i) for i in list_col]
+        with open('D:/HK2/Kỹ_thuật_dữ_liệu/final/backend/crud/model/model_filename.pkl', 'rb') as file:
+            loaded_model = pickle.load(file)
+
+        propensity1 = loaded_model.predict_proba([list_col])[:, 1][0] 
+        score1 = convert_to_score(propensity1)
+        user = Simulation.objects.filter(user_id=user_id).first()
+        user.basket_icon_click = list_col[0]
+        user.basket_add_list = list_col[1]
+        user.basket_add_detail = list_col[2]
+        user.sort_by = list_col[3]
+        user.image_picker = list_col[4]
+        user.account_page_click = list_col[5]
+        user.promo_banner_click = list_col[6]
+        user.detail_wishlist_add = list_col[7]
+        user.list_size_dropdown = list_col[8]
+        user.closed_minibasket_click = list_col[9]
+        user.checked_delivery_detail = list_col[10]
+        user.checked_returns_detail = list_col[11]
+        user.sign_in = list_col[12]
+        user.saw_checkout = list_col[13]
+        user.saw_sizecharts = list_col[14]
+        user.saw_delivery = list_col[15]
+        user.saw_account_upgrade = list_col[16]
+        user.saw_homepage = list_col[17]
+        user.device_computer = list_col[18]
+        user.device_tablet = list_col[19]
+        user.returning_user = list_col[20]
+        user.loc_uk = list_col[21]
+        user.propensity = propensity1
+        user.score = score1
+        user.updated_at = datetime.datetime.now()
+        user.save()
+        
+        return Response({'data': 'UserID has been updated successfully!'}, status=status.HTTP_200_OK)
+class isSelected(APIView):
+    def post(self, request):
+        selected = request.data.get('selected')
+        notselected = request.data.get('notselected')
+        
+        # cập nhât lại giá trị cho isSelect
+        isSelect = IsSelect.objects.get(id=1)
+        if selected == '':
+            selected = 'N'
+        if notselected == '':
+            notselected = 'N'
+        isSelect.select = selected
+        isSelect.not_select = notselected
+        isSelect.save()
+        return Response({'message': 'Selected was created successfully!'}, status=status.HTTP_200_OK)
+class analysisUserID(APIView):
+    def post(self, request):
+        user_id = request.data.get('user_id').strip()
+        get_simulation = Simulation.objects.filter(user_id=user_id).first()
+        if get_simulation is not None:
+            serializer = SimulationSerializer(get_simulation)
+            return Response({'data': serializer.data}, status=status.HTTP_200_OK)
+        else:
+            return Response({'data': 'User ID does not exist!'}, status=status.HTTP_200_OK)
 class chartPie(APIView):  
     def get(self, request): 
         get_simulation = Simulation.objects.all()
         get_simulation = list(get_simulation)
-        score_counts = {'5-10': 0, '10-30': 0, '>30': 0}
+        score_counts = {'<10': 0, '10-30': 0, '>30': 0}
         for i in get_simulation:
-            if 5 <= i.score < 10:
-                score_counts['5-10'] += 1
+            if i.score < 10:
+                score_counts['<10'] += 1
             elif 10 <= i.score <= 30:
                 score_counts['10-30'] += 1
             elif i.score > 30:
@@ -503,30 +561,4 @@ class SimulationAPI(APIView):
         )
         simulation.save()
         return Response({'message': 'Simulation was created successfully!'}, status=status.HTTP_200_OK)
-
-# class getData(APIView): 
-#     def post(self, request):
-#         get_simulation = Simulation.objects.all()
-#         # get_simulation = list(get_simulation)
-#         serializer = SimulationSerializer(get_simulation, many=True)
-#         get_simulation = serializer.data 
-#         select = request.data.get('selected','') 
-#         if select == "All":
-#             return Response({'data': get_simulation}, status=status.HTTP_200_OK)
-#         elif select == "Level 1":
-#             get_simulation = [i for i in get_simulation if i['score'] >30]
-#             return Response({'data': get_simulation}, status=status.HTTP_200_OK)
-#         elif select == "Level 2":
-#             get_simulation = [i for i in get_simulation if 20 <= i['score'] <= 30]
-#             return Response({'data': get_simulation}, status=status.HTTP_200_OK)
-#         elif select == "Level 3":
-#             get_simulation = [i for i in get_simulation if 10 <= i['score'] < 20]
-#             return Response({'data': get_simulation}, status=status.HTTP_200_OK)
-        
-#     def get(self, request):
-#         get_simulation = Simulation.objects.all()
-#         serializer = SimulationSerializer(get_simulation, many=True)
-#         get_simulation = serializer.data
-#         return Response({'data': get_simulation}, status=status.HTTP_200_OK)
-    
 
