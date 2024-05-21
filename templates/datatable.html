@@ -500,60 +500,48 @@ function infoSusscess(text) {
     });
 }
 function editData(){
-    const name_col = ['Basket icon click', 'Basket add list', 'Basket add detail', 'Sort by', 'Image picker', 'Account page click', 'Promo banner click', 'Detail wishlist add', 'List size dropdown', 'Closed minibasket click', 'Checked delivery detail', 'Checked returns detail', 'Sign in', 'Saw checkout', 'Saw sizecharts', 'Saw delivery', 'Saw account upgrade', 'Saw homepage', 'Device computer', 'Device tablet', 'Returning user', 'Loc uk'];
-    const editModal = document.querySelector('#EditModal .modal-body');
+    const name_col = [
+        'Basket icon click', 'Basket add list', 'Basket add detail', 'Sort by', 'Image picker', 
+        'Account page click', 'Promo banner click', 'Detail wishlist add', 'List size dropdown', 
+        'Closed minibasket click', 'Checked delivery detail', 'Checked returns detail', 'Sign in', 
+        'Saw checkout', 'Saw sizecharts', 'Saw delivery', 'Saw account upgrade', 'Saw homepage', 
+        'Device computer', 'Device tablet', 'Returning user', 'Loc uk'
+    ];
     var userID;
+    const editModal = document.querySelector('#EditModal .modal-body');
     const allRows = document.querySelectorAll("tbody tr");
-    allRows.forEach(function(row) {
-        const editButton = row.querySelector('#edit');
-        editButton.addEventListener('click', function() {
-            const l_edit = [];
-            var userID0 = row.querySelector('td:nth-child(2)').textContent;
-            userID = userID0;
-            const title = document.querySelector('#EditModal .modal-title');
-            title.textContent = `Edit: ${userID0}`;
 
-            const backetIconClick = row.querySelector('td:nth-child(3)').textContent;
-            const backetAddList = row.querySelector('td:nth-child(4)').textContent;
-            const backetAddDetail = row.querySelector('td:nth-child(5)').textContent;
-            const sortBy = row.querySelector('td:nth-child(6)').textContent;
-            const imagePicker = row.querySelector('td:nth-child(7)').textContent;
-            const accountPageClick = row.querySelector('td:nth-child(8)').textContent;
-            const promoBannerClick = row.querySelector('td:nth-child(9)').textContent;
-            const detailWishlistAdd = row.querySelector('td:nth-child(10)').textContent;
-            const listSizeDropdown = row.querySelector('td:nth-child(11)').textContent;
-            const closedMinibasketClick = row.querySelector('td:nth-child(12)').textContent;
-            const checkedDeliveryDetail = row.querySelector('td:nth-child(13)').textContent;
-            const checkedReturnsDetail = row.querySelector('td:nth-child(14)').textContent;
-            const signIn = row.querySelector('td:nth-child(15)').textContent;
-            const sawCheckout = row.querySelector('td:nth-child(16)').textContent;
-            const sawSizecharts = row.querySelector('td:nth-child(17)').textContent;
-            const sawDelivery = row.querySelector('td:nth-child(18)').textContent;
-            const sawAccountUpgrade = row.querySelector('td:nth-child(19)').textContent;
-            const sawHomepage = row.querySelector('td:nth-child(20)').textContent;
-            const deviceComputer = row.querySelector('td:nth-child(21)').textContent;
-            const deviceTablet = row.querySelector('td:nth-child(22)').textContent;
-            const returningUser = row.querySelector('td:nth-child(23)').textContent;
-            const locUk = row.querySelector('td:nth-child(24)').textContent;
-            l_edit.push(backetIconClick, backetAddList, backetAddDetail, sortBy, imagePicker, accountPageClick, promoBannerClick, detailWishlistAdd, listSizeDropdown, closedMinibasketClick, checkedDeliveryDetail, checkedReturnsDetail, signIn, sawCheckout, sawSizecharts, sawDelivery, sawAccountUpgrade, sawHomepage, deviceComputer, deviceTablet, returningUser, locUk);
-            
+    allRows.forEach(row => {
+        const editButton = row.querySelector('#edit');
+        editButton.addEventListener('click', () => {
+            const l_edit = [];
+            const userID0 = row.querySelector('td:nth-child(2)').textContent;
+            userID = userID0;
+
+            document.querySelector('#EditModal .modal-title').textContent = `Edit: ${userID0}`;
+
+            for (let i = 3; i <= 24; i++) {
+                l_edit.push(row.querySelector(`td:nth-child(${i})`).textContent);
+            }
+
             editModal.innerHTML = '';
-            var newDiv = document.createElement("div");
+            const newDiv = document.createElement("div");
             newDiv.className = "row";
             editModal.appendChild(newDiv);
-            for (let i = 0; i < l_edit.length; i++) {
-                const checked = l_edit[i] == 1 ? 'checked' : '';
+
+            l_edit.forEach((value, index) => {
+                const checked = value == 1 ? 'checked' : '';
                 newDiv.innerHTML += `
                     <div class="col-4">
                         <div class="input-group mb-3">
-                            <label class="form-label">${name_col[i]}</label>
+                            <label class="form-label">${name_col[index]}</label>
                             <div class="form-check form-switch ms-auto">
-                                <input class="form-check-input" type="checkbox" id="${name_col[i].toLowerCase()}" name="${name_col[i].toLowerCase()}" ${checked}>
+                                <input class="form-check-input" type="checkbox" id="${name_col[index].toLowerCase()}" name="${name_col[index].toLowerCase()}" ${checked}>
                             </div>
                         </div>
                     </div>
                 `;
-            }
+            });
         });
     });
 
