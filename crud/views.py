@@ -145,6 +145,15 @@ def dashboard(request):
             max_score_percent = 0
             min_score_percent = 0
             number_potential_customers_percent = 0
+            metrics.number_user = 0
+            metrics.max_score = 0
+            metrics.min_score = 0
+            metrics.number_potential_customers = 0
+            metrics.number_user_percent = 0
+            metrics.max_score_percent = 0
+            metrics.min_score_percent = 0
+            metrics.number_potential_customers_percent = 0
+            metrics.save()
 
     except DashboardMetrics.DoesNotExist:
         metrics = DashboardMetrics.objects.create(
