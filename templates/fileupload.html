@@ -1,25 +1,6 @@
 {% extends 'layout/app.html' %}
 {% load static %}
 {% block body %}
-<style>
-    .toast {
-        opacity: 1 !important;
-        background-color: #4CAF50; 
-        color: white; 
-        border-radius: 4px; 
-        border: none; 
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
-        top: 60px;
-    }
-    
-    .toast-close-button {
-        color: white; 
-    }
-    
-    .toast-progress {
-        background-color: rgba(255, 255, 255, 0.5);
-    }
-</style>
     <div class="container-fluid px-4">
         <h1 class="mt-4">File Upload</h1>
         <ol class="breadcrumb mb-4">
@@ -48,28 +29,42 @@
                         <h3 class="overlay-text">Adding data ...</h3>
                     </div>
                     
-                    <div class="row">
-                        <div class="col-6">
-                            <div class="input-group mb-3">
-                                <input type="file" class="form-control custom-file-input file" name="myfile" id="fileInput" accept=".csv">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <input type="file" class="form-control" name="myfile" id="fileInput" accept=".csv">
                             </div>
                         </div>
-                        <div class="col-3">
-                            <div class="input-group mb-3">
-                                <label class="form-label" style="align-items: center;margin-right: 10px;display: flex;">Quantity to add:  </label>
-                                <input type="number" class="form-control" name="extra_quantity" placeholder="Extra quantity" id="inputFirst" value="10" required>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">Start number:</span>
+                                </div>
+                                <input type="number" class="form-control" name="start_number" placeholder="Start number" id="inputStart" value="0" required>
                             </div>
                         </div>
-                        <div class="col-3">
-                            <div class="input-group mb-3">
-                                <label class="form-label" style="align-items: center;margin-right: 10px;display: flex;">Threading: </label>
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">End number:</span>
+                                </div>
+                                <input type="number" class="form-control" name="end_number" placeholder="End number" id="inputEnd" value="10" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">Threading:</span>
+                                </div>
                                 <input type="number" class="form-control" name="threading" placeholder="Threading number" id="inputThreading" value="1" required min="1" max="10">
                             </div>
                         </div>
-                        <div class="col-3">
-                            <div class="input-group mb-3">
-                                <button class="btn btn-primary btn-block" id="submit">Submit &nbsp;&nbsp;&nbsp;<span></span></button>
-                            </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <button type="submit" class="btn btn-primary btn-block" id="submit">Submit</button>
                         </div>
                     </div>
                 </div>
@@ -122,13 +117,15 @@ function infoSusscess(text) {
 }
 function fetchUpload() {
     var submit = document.getElementById("submit");
-    var number = document.querySelector("input[name='extra_quantity']");
+    var startNumber = document.querySelector("input[name='start_number']");
+    var endNumber = document.querySelector("input[name='end_number']");
     var file = document.querySelector("input[name='myfile']");
     var threading = document.querySelector("input[name='threading']");
     
     const formData = new FormData();
     formData.append('myfile', file.files[0]);
-    formData.append('number', number.value);
+    formData.append('start_number', startNumber.value);
+    formData.append('end_number', endNumber.value);
     formData.append('threading', threading.value);
 
     // mở overlay

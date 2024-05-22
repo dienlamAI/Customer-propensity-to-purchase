@@ -11837,3 +11837,22 @@ body {
   font-weight: bold;
   margin-bottom: 10px;
 }
+
+/* toast */
+.toast {
+  opacity: 1 !important;
+  background-color: #4CAF50; 
+  color: white; 
+  border-radius: 4px; 
+  border: none; 
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+  top: 60px;
+}
+
+.toast-close-button {
+  color: white; 
+}
+
+.toast-progress {
+  background-color: rgba(255, 255, 255, 0.5);
+}

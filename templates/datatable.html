@@ -171,7 +171,7 @@
                                     <div class="info-user-id"></div>
                                     <div class="info-score"></div>
                                     <div class="info-level"></div>
-                                    <div class="rank"></div>
+                                    <div class="info-rank"></div>
                                 </div>
                             </div>
                         </div>
@@ -363,7 +363,7 @@ function analysisUserID(){
                 const infoUserID = document.querySelector('.info-user-id');
                 const infoScore = document.querySelector('.info-score');
                 const infoLevel = document.querySelector('.info-level');
-                const rank = document.querySelector('.rank');
+                const rank = document.querySelector('.info-rank');
                 infoUserID.innerHTML = `<strong>User ID:</strong> ${data.data.user_id}`;
                 infoScore.innerHTML = `<strong>Score:</strong> ${data.data.score}`;
                 if (parseFloat(data.data.score) > 30){

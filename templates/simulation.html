@@ -1,25 +1,6 @@
 {% extends 'layout/app.html' %}
 {% load static %}
 {% block body %}
-<style>
-.toast {
-    opacity: 1 !important;
-    background-color: #4CAF50; 
-    color: white; 
-    border-radius: 4px; 
-    border: none; 
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
-    top: 60px;
-}
-
-.toast-close-button {
-    color: white; 
-}
-
-.toast-progress {
-    background-color: rgba(255, 255, 255, 0.5);
-}
-</style>
 <div class="container-fluid px-4">
     <h1 class="mt-4">Simulation</h1>
     <ol class="breadcrumb mb-4">
@@ -60,8 +41,13 @@
                 </div>
             </div>
         </div>
+        <div class="card-body" style="border-top: 1px solid rgba(0, 0, 0, 0.125);display:none;" id="info-simulation">
+            <div class="user-id"></div>
+            <div class="score"></div>
+            <div class="level"></div>
+            <div class="rank"></div>
+        </div>
     </div>    
-    
 </div> 
 
 {% endblock %}
@@ -140,7 +126,28 @@ function fetchSimulation(){
     })
     .then(data => {
         console.log('Dữ liệu đã cập nhật:', data);
+        const infoSimulation = document.getElementById('info-simulation');
+        infoSimulation.style.display = 'block';
+        const infoUserID = document.querySelector('.user-id');
+        const infoScore = document.querySelector('.score');
+        const infoLevel = document.querySelector('.level');
+        const rank = document.querySelector('.rank');
+        infoUserID.innerHTML = `<strong>User ID:</strong> ${data.data.user_id}`;
+        infoScore.innerHTML = `<strong>Score:</strong> ${data.data.score}`;
+        if (parseFloat(data.data.score) > 30){
+            infoLevel.innerHTML = `<strong>Level:</strong> Level 1`;
+            rank.innerHTML = `<strong>Rank:</strong> Gold <i class="fas fa-medal" style="color: gold;"></i>`;
+        } else if (parseFloat(data.data.score) > 20){
+            infoLevel.innerHTML = `<strong>Level:</strong> Level 2`;
+            rank.innerHTML = `<strong>Rank:</strong> Silver <i class="fas fa-medal" style="color: silver;"></i>`;
+        } else if (parseFloat(data.data.score) > 10) {
+            infoLevel.innerHTML = `<strong>Level:</strong> Level 3`;
+            rank.innerHTML = `<strong>Rank:</strong> Bronze <i class="fas fa-medal" style="color: #cd7f32;"></i>`;
+        } else {
+            rank.innerHTML = `<strong>Rank:</strong> Normal`;
+        }
         infoSusscess(data.message);
+
     })
     .catch(error => {
         console.error('Lỗi:', error);

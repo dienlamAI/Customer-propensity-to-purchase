@@ -28,6 +28,9 @@ from .serializers import SimulationSerializer, DataSerializer
 import csv
 from django.http import HttpResponse
 from time import strftime
+from fpdf import FPDF
+from tempfile import NamedTemporaryFile
+import os
 
 # Register
 @csrf_protect
@@ -169,6 +172,79 @@ def dashboard(request):
     }
     return render(request, 'dashboard.html', context)
 
+class PDF(FPDF):
+    def header(self):
+        self.set_font('Arial', 'B', 12)
+        self.cell(0, 10, 'CUSTOMER SCORING PERFORMANCE REPORT', 0, 1, 'C')
+        self.ln(10)
+
+    def footer(self):
+        self.set_y(-15)
+        self.set_font('Arial', 'I', 8)
+        self.cell(0, 10, 'Page ' + str(self.page_no()), 0, 0, 'C')
+def bold_text(pdf, text):
+    pdf.set_font('Arial', 'B', 12)
+    pdf.multi_cell(0, 10, text)
+def normal_text(pdf, text):
+    pdf.set_font('Arial', '', 12)
+    pdf.multi_cell(0, 10, text)
+
+def export_report(request):
+    metrix = DashboardMetrics.objects.get(id=1)
+
+    # Tạo một tệp PDF tạm thời
+    with NamedTemporaryFile(suffix='.pdf', delete=False) as temp_pdf_file:
+        temp_pdf_path = temp_pdf_file.name
+
+        # Tạo PDF và điền thông tin vào
+        pdf = PDF()
+        pdf.add_page()
+        pdf.set_font("Arial", size=12)
+
+        headers_data = [
+            ["1. Total user data:", f"- User: {metrix.number_user}\n- Change rate: {metrix.number_user_percent}%\n"],
+            ["2. Total potential customer data:", f"- Potential customer: {metrix.number_potential_customers}\n- Change rate: {metrix.number_potential_customers_percent}%\n"],
+            ["3. Score:", f"- Max score: {metrix.max_score}\n- Change rate: {metrix.max_score_percent}%\n\n- Min score: {metrix.min_score}\n- Change rate: {metrix.min_score_percent}%\n"],
+            ["4. Pie chart:", ""],
+            ["5. Bar chart:", ""],
+        ]
+
+        get_simulation = Simulation.objects.all()
+        chart_score_counts = {'10-20': 0, '20-30': 0, '>30': 0}
+        pie_score_counts = {'<10': 0, '10-30': 0, '>30': 0}
+        for simulation in get_simulation:
+            if simulation.score < 10:
+                pie_score_counts['<10'] += 1
+            elif 10 <= simulation.score < 20:
+                chart_score_counts['10-20'] += 1
+                pie_score_counts['10-30'] += 1
+            elif 20 <= simulation.score <= 30:
+                chart_score_counts['20-30'] += 1
+                pie_score_counts['10-30'] += 1
+            elif simulation.score > 30:
+                chart_score_counts['>30'] += 1
+                pie_score_counts['>30'] += 1
+        
+        for level, count in pie_score_counts.items():
+            headers_data[3][1] += f"- Level {level} ({'10 - 30' if level == '10-30' else level}): {count}\n"
+        for level, count in chart_score_counts.items():
+            headers_data[4][1] += f"- Level {level} ({'10 - 20' if level == '10-20' else level}): {count}\n"
+
+        for header, data in headers_data:
+            bold_text(pdf, header)
+            normal_text(pdf, data)
+
+        pdf.output(temp_pdf_path)
+
+    # Đọc nội dung tệp PDF tạm thời
+    with open(temp_pdf_path, 'rb') as f:
+        pdf_content = f.read()
+
+    # Tạo HTTPResponse chứa nội dung PDF và gửi về client
+    response = HttpResponse(pdf_content, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="report.pdf"'
+    os.unlink(temp_pdf_path)
+    return response
 # Upload File
 def process_data_chunk(df_chunk):
     for index, row in df_chunk.iterrows(): 
@@ -480,21 +556,31 @@ class chartBar(APIView):
         counts = list(score_counts.values())
         return Response({'scores': scores, 'counts': counts}, status=status.HTTP_200_OK)
 
-# viết api để lấy dữ liệu từ fontend
 class FileUpload(APIView):
     def post(self, request):
-        print("request.data: ", request.data) 
+        print(request.data)
         myfile = request.data.get('myfile')
-        number = request.data.get('number')
+        start_number = request.data.get('start_number')
+        end_number = request.data.get('end_number')
         threading1 = request.data.get('threading')
         if myfile.name.endswith('.csv') and myfile != None:   
             try:
                 start = datetime.datetime.now()
                 df = pd.read_csv(myfile)   
-                df = df.head(int(number))
+                df = df.iloc[int(start_number):int(end_number)+1]
+                if "propensity".lower() not in df.columns.str.lower():
+                    userids = df['UserID']
+                    df = df.drop(['ordered','UserID','device_mobile'], axis=1)
+                    with open('D:/HK2/Kỹ_thuật_dữ_liệu/final/backend/crud/model/model_filename.pkl', 'rb') as file:
+                        loaded_model = pickle.load(file)
+
+                    df['propensity'] = loaded_model.predict_proba(df)[:, 1]
+                    df['score'] = df['propensity'].apply(lambda x: convert_to_score(x))
+                    df = pd.concat([userids, df], axis=1)
+                if "Score".lower() not in df.columns.str.lower():
+                    df['score'] = df['propensity'].apply(lambda x: convert_to_score(x))
                 if len(df) >= 50:
                     num_threads = int(threading1)
-                    chunk_size = len(df) // num_threads 
                     chunk_size = (len(df) + num_threads - 1) // num_threads
                     chunks = [df[i:i+chunk_size] for i in range(0, len(df), chunk_size)]
                     threads = []
@@ -560,5 +646,7 @@ class SimulationAPI(APIView):
             updated_at = datetime.datetime.now()
         )
         simulation.save()
-        return Response({'message': 'Simulation was created successfully!'}, status=status.HTTP_200_OK)
+        simulation = Simulation.objects.filter(user_id=simulation.user_id).first()
+        serializer = SimulationSerializer(simulation)
+        return Response({'message': 'Simulation was created successfully!','data':serializer.data}, status=status.HTTP_200_OK)
 
