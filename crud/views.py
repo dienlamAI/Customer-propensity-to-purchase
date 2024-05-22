@@ -17,6 +17,18 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import render,redirect
+from django.urls import reverse_lazy
+from django.views.generic.edit import FormView
+from django.contrib.auth.views import LoginView,PasswordChangeView
+from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import authenticate,login,logout
+from django.contrib.auth.hashers import make_password
+from django.utils.decorators import method_decorator
+from django.views import View
+from .forms import RegisterForm,LoginForm,PasswordChangeForm1
 import uuid
 import pandas as pd
 import pickle
@@ -32,35 +44,104 @@ from fpdf import FPDF
 from tempfile import NamedTemporaryFile
 import os
 
-# Register
-@csrf_protect
-def register(request):
-    if request.method == 'POST':
-        form = RegistrationForm(request.POST)
-        if form.is_valid():
-            user = User(
-                username=form.cleaned_data['username'],
-                email=form.cleaned_data['email'],
-                first_name=form.cleaned_data['first_name'],
-                last_name=form.cleaned_data['last_name'],
-            )
-            user.set_password(form.cleaned_data['password1'])
-            user.is_staff = True
-            user.is_active = True
-            user.is_superuser = True
-            try:
-                user.full_clean()
-                user.save()
-                messages.success(request, 'Member was created successfully!')
-                return redirect('register_success')
-            except ValidationError as e:
-                messages.error(request, 'Error: {}'.format(e))
-    else:
-        form = RegistrationForm()
-    return render(request, 'register.html', {'form': form})
+# Account
+def login_required_if_authenticated(view_func):
+    def _wrapped_view(request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return login_required(view_func)(request, *args, **kwargs)
+        else:
+            return view_func(request, *args, **kwargs)
+    return _wrapped_view
 
+
+def redirect_authenticated_user(view_func):
+    def _wrapped_view(request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return redirect('dashboard')  
+        else:
+            return view_func(request, *args, **kwargs)
+    return _wrapped_view
+
+@method_decorator(redirect_authenticated_user, name='dispatch')
+class RegisterView1(FormView):
+    template_name = 'register.html'
+    form_class = RegisterForm
+
+    def form_valid(self, form):
+        user = form.save(commit=False)
+        user.password = make_password(form.cleaned_data['password'])
+        user.save()
+        username = user.username
+        messages.success(self.request, f'Account created for {username}')
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        return reverse_lazy('register_success')
 def register_success(request):
     return render(request, 'success.html')
+
+@method_decorator(redirect_authenticated_user, name='dispatch')
+class LoginView1(View):
+    def get(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return redirect('dashboard')  
+        form = LoginForm()  
+        return render(request, 'login.html', {'form': form})  
+
+    def post(self, request, *args, **kwargs):
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+            remember_me = form.cleaned_data.get('remember_me', False)
+
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                login(request, user)
+                if not remember_me:
+                    request.session.set_expiry(0)
+                return redirect('dashboard')  
+            else:
+                form.add_error(None, "Invalid username or password")
+        return render(request, 'login.html', {'form': form})
+
+
+class LogoutView1(View):
+    def get(self, request, *args, **kwargs):
+        logout(request)
+        return redirect('login')
+    
+
+#  change password
+@login_required
+def changePassword(request):
+    if request.method == 'POST':
+        current_password = request.POST.get('current_password')
+        new_password = request.POST.get('new_password')
+        repeat_password = request.POST.get('repeat_password')
+        
+        user = request.user
+        
+        # Check if the current password is correct
+        if not check_password(current_password, user.password):
+            messages.error(request, 'Current password is incorrect.')
+            return render(request, 'change_password.html')
+        
+        # Check if new password matches repeat password
+        if new_password != repeat_password:
+            messages.error(request, 'New password and repeat password do not match.')
+            return render(request, 'change_password.html')
+        
+        # Change the password
+        user.set_password(new_password)
+        user.save()
+         
+        update_session_auth_hash(request, user)
+        
+        messages.success(request, 'Your password was successfully updated!')
+        return redirect('change_password')
+        
+    return render(request, 'change_password.html')
 
 # Dashboard
 @login_required
@@ -434,36 +515,6 @@ def user_delete(request, id):
     messages.success(request, 'User was deleted successfully!')
     return redirect('users')
 
-#  change password
-@login_required
-def changePassword(request):
-    if request.method == 'POST':
-        current_password = request.POST.get('current_password')
-        new_password = request.POST.get('new_password')
-        repeat_password = request.POST.get('repeat_password')
-        
-        user = request.user
-        
-        # Check if the current password is correct
-        if not check_password(current_password, user.password):
-            messages.error(request, 'Current password is incorrect.')
-            return render(request, 'change_password.html')
-        
-        # Check if new password matches repeat password
-        if new_password != repeat_password:
-            messages.error(request, 'New password and repeat password do not match.')
-            return render(request, 'change_password.html')
-        
-        # Change the password
-        user.set_password(new_password)
-        user.save()
-         
-        update_session_auth_hash(request, user)
-        
-        messages.success(request, 'Your password was successfully updated!')
-        return redirect('change_password')
-        
-    return render(request, 'change_password.html')
 
 # 404
 def custom_404(request, exception):

@@ -3,10 +3,7 @@ from .views import *
 from django.urls import path
 from django.conf.urls import handler404
 
-urlpatterns = [
-    path('register/', views.register, name='register'),
-    path('register/success/', views.register_success, name='register_success'),
-    
+urlpatterns = [    
     path('', views.dashboard, name='dashboard'),
     path('export-report/', views.export_report, name='export_report'),
     path('fileupload/', views.fileupload, name='fileupload'),
@@ -18,7 +15,13 @@ urlpatterns = [
 
     path('users/', views.users, name='users'),
     path('users/delete/<int:id>/', views.user_delete, name='user_delete'),
-    path('change_password/', views.changePassword, name='change_password'),
+
+    # account
+    path('register/', RegisterView1.as_view(), name='register'),
+    path('register/success/', views.register_success, name='register_success'),
+    path('login/', LoginView1.as_view(), name='login'),
+    path('logout/', LogoutView1.as_view(), name='logout'),
+    path('change-password/', views.changePassword, name='change_password'),
 
     # API
     path('api/chart-pie/', chartPie.as_view(), name='api_chart_pie'),
