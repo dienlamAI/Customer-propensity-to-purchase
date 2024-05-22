@@ -567,7 +567,7 @@ class FileUpload(APIView):
             try:
                 start = datetime.datetime.now()
                 df = pd.read_csv(myfile)   
-                df = df.iloc[int(start_number):int(end_number)+1]
+                df = df.iloc[int(start_number):int(end_number)]
                 if "propensity".lower() not in df.columns.str.lower():
                     userids = df['UserID']
                     df = df.drop(['ordered','UserID','device_mobile'], axis=1)
