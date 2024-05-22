@@ -199,7 +199,7 @@ def normal_text(pdf, text):
     pdf.multi_cell(0, 10, text)
 
 def export_report(request):
-    metrix = DashboardMetrics.objects.get(id=1)
+    metrics = DashboardMetrics.objects.get(id=1)
 
     # Tạo một tệp PDF tạm thời
     with NamedTemporaryFile(suffix='.pdf', delete=False) as temp_pdf_file:
@@ -211,9 +211,9 @@ def export_report(request):
         pdf.set_font("Arial", size=12)
 
         headers_data = [
-            ["1. Total user data:", f"- User: {metrix.number_user}\n- Change rate: {metrix.number_user_percent}%\n"],
-            ["2. Total potential customer data:", f"- Potential customer: {metrix.number_potential_customers}\n- Change rate: {metrix.number_potential_customers_percent}%\n"],
-            ["3. Score:", f"- Max score: {metrix.max_score}\n- Change rate: {metrix.max_score_percent}%\n\n- Min score: {metrix.min_score}\n- Change rate: {metrix.min_score_percent}%\n"],
+            ["1. Total user data:", f"- User: {metrics.number_user}\n- Change rate: {metrics.number_user_percent}%\n"],
+            ["2. Total potential customer data:", f"- Potential customer: {metrics.number_potential_customers}\n- Change rate: {metrics.number_potential_customers_percent}%\n"],
+            ["3. Score:", f"- Max score: {metrics.max_score}\n- Change rate: {metrics.max_score_percent}%\n\n- Min score: {metrics.min_score}\n- Change rate: {metrics.min_score_percent}%\n"],
             ["4. Pie chart:", ""],
             ["5. Bar chart:", ""],
         ]
