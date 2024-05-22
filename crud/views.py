@@ -567,6 +567,9 @@ class FileUpload(APIView):
             try:
                 start = datetime.datetime.now()
                 df = pd.read_csv(myfile)   
+                if len(df) < int(end_number):
+                    end_number = len(df)
+                
                 df = df.iloc[int(start_number):int(end_number)]
                 if "propensity".lower() not in df.columns.str.lower():
                     userids = df['UserID']
