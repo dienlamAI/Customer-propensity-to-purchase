@@ -1,3 +1,11 @@
+### Background
+- Công ty thương mại điện tử mới thành lập, có lượng truy cập cao nhưng tỷ lệ chuyển đổi web sang mua hàng thấp. Vì vậy, chúng tôi dự đoán khả năng mua hàng của từng người dùng và triển khai chính sách giảm giá nhắm mục tiêu để thúc đẩy họ mua hàng.
+
+### Achievements
+- Phân tích RFM: Thực hiện phân tích RFM (Recency, Frequency, Monetary) chi tiết để phân loại người dùng dựa trên hành vi mua hàng của họ.
+- Mô hình Khả năng Mua hàng: Sử dụng mô hình khả năng để dự báo hành vi người dùng và xác định những người cần khuyến khích để thực hiện mua hàng.
+
+---
 
 Đảm bảo bạn đã cài đặt Docker trên máy tính của mình. Kiểm tra bằng cách chạy:
 
