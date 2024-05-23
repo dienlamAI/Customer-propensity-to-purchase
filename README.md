@@ -16,7 +16,7 @@ cd Customer-propensity-to-purchase
 Xây dựng image Docker từ Dockerfile:
 
 ```bash
-docker build -t Customer-propensity-to-purchase .
+docker build -t customer-propensity-to-purchase .
 ```
 
 ## Bước 2: Chạy Ứng dụng Customer-propensity-to-purchase
@@ -24,7 +24,7 @@ docker build -t Customer-propensity-to-purchase .
 Chạy ứng dụng Customer-propensity-to-purchase trong một container Docker:
 
 ```bash
-docker run -p 8000:8000 Customer-propensity-to-purchase
+docker run -p 8000:8000 customer-propensity-to-purchase
 ```
 
 Ứng dụng sẽ chạy và lắng nghe trên cổng 8000.
@@ -44,7 +44,7 @@ Nhập tên đăng nhập và mật khẩu của bạn khi được yêu cầu.
 Tag Docker image của bạn với tên repository trên Docker Hub:
 
 ```bash
-docker tag Customer-propensity-to-purchase:latest diends/yourname:image_name
+docker tag customer-propensity-to-purchase:latest diends/yourname:image_name
 ```
 
 Đẩy Docker image lên Docker Hub:
@@ -58,7 +58,7 @@ docker push diends/yourname:image_name
 Bây giờ, bạn có thể chạy ứng dụng backend từ image đã được đẩy lên Docker Hub:
 
 ```bash
-docker run -it --name Customer-propensity-to-purchase -p 8000:8000 diends/yourname:image_name
+docker run -it --name customer-propensity-to-purchase -p 8000:8000 diends/yourname:image_name
 ```
 
 ---
