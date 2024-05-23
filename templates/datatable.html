@@ -8,29 +8,47 @@
         <div class="simulation-right" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: nowrap;">
             <form id="pagination-form"  role="form" action="" method="GET" style="display: flex; align-items: center; justify-content: center; flex-wrap: nowrap;">
                 <div class="form-group select-with-icon" style="margin-right: 10px;">
+                    <select class="form-control" data-toggle="tooltip" data-placement="top" title="Sort by" style="width: 95px;" name="sortBy" id="sortSelect">
+                        <option value="user_id" {% if sortBy == "user_id" %}selected{% endif %}>User ID</option>
+                        <option value="basket_icon_click" {% if sortBy == "basket_icon_click" %}selected{% endif %}>Basket icon click</option>
+                        <option value="basket_add_list" {% if sortBy == "basket_add_list" %}selected{% endif %}>Basket add list</option>
+                        <option value="basket_add_detail" {% if sortBy == "basket_add_detail" %}selected{% endif %}>Basket add detail</option>
+                        <option value="sort_by" {% if sortBy == "sort_by" %}selected{% endif %}>Sort by</option>
+                        <option value="image_picker" {% if sortBy == "image_picker" %}selected{% endif %}>Image picker</option>
+                        <option value="account_page_click" {% if sortBy == "account_page_click" %}selected{% endif %}>Account page click</option>
+                        <option value="promo_banner_click" {% if sortBy == "promo_banner_click" %}selected{% endif %}>Promo banner click</option>
+                        <option value="detail_wishlist_add" {% if sortBy == "detail_wishlist_add" %}selected{% endif %}>Detail wishlist add</option>
+                        <option value="list_size_dropdown" {% if sortBy == "list_size_dropdown" %}selected{% endif %}>List size dropdown</option>
+                        <option value="closed_minibasket_click" {% if sortBy == "closed_minibasket_click" %}selected{% endif %}>Closed minibasket click</option>
+                        <option value="checked_delivery_detail" {% if sortBy == "checked_delivery_detail" %}selected{% endif %}>Checked delivery detail</option>
+                        <option value="checked_returns_detail" {% if sortBy == "checked_returns_detail" %}selected{% endif %}>Checked returns detail</option>
+                        <option value="sign_in" {% if sortBy == "sign_in" %}selected{% endif %}>Sign in</option>
+                        <option value="saw_checkout" {% if sortBy == "saw_checkout" %}selected{% endif %}>Saw checkout</option>
+                        <option value="saw_sizecharts" {% if sortBy == "saw_sizecharts" %}selected{% endif %}>Saw sizecharts</option>
+                        <option value="saw_delivery" {% if sortBy == "saw_delivery" %}selected{% endif %}>Saw delivery</option>
+                        <option value="saw_account_upgrade" {% if sortBy == "saw_account_upgrade" %}selected{% endif %}>Saw account upgrade</option>
+                        <option value="saw_homepage" {% if sortBy == "saw_homepage" %}selected{% endif %}>Saw homepage</option>
+                        <option value="device_computer" {% if sortBy == "device_computer" %}selected{% endif %}>Device computer</option>
+                        <option value="device_tablet" {% if sortBy == "device_tablet" %}selected{% endif %}>Device tablet</option>
+                        <option value="returning_user" {% if sortBy == "returning_user" %}selected{% endif %}>Returning user</option>
+                        <option value="loc_uk" {% if sortBy == "loc_uk" %}selected{% endif %}>Loc uk</option>
+                        <option value="propensity" {% if sortBy == "propensity" %}selected{% endif %}>Propensity</option>
+                        <option value="score" {% if sortBy == "score" %}selected{% endif %}>Score</option>
+                    </select>
+                </div>                
+                <div class="form-group select-with-icon" style="margin-right: 10px;">
+                    <select class="form-control" data-toggle="tooltip" data-placement="top" title="Sort Order" style="width: 95px;" name="sort_order" id="sortOrderSelect">
+                        <option value="asc" {% if sort_order == "asc" %}selected{% endif %}>Ascending</option>
+                        <option value="desc" {% if sort_order == "desc" %}selected{% endif %}>Descending</option>
+                    </select>   
+                </div>
+                <div class="form-group select-with-icon" style="margin-right: 10px;">
                     <select class="form-control" data-toggle="tooltip" data-placement="top" title="Level of potential customers" style="width: 95px;" name="filter" id="filterSelect">
-                        {% if select == "All" %}
-                        <option value="All" selected>All</option>
-                        <option value="Level 1">Level 1</option>
-                        <option value="Level 2">Level 2</option>
-                        <option value="Level 3">Level 3</option>
-                        {% elif select == "Level_1" %}
-                        <option value="All">All</option>
-                        <option value="Level 1" selected>Level 1</option>
-                        <option value="Level 2">Level 2</option>
-                        <option value="Level 3">Level 3</option>
-                        {% elif select == "Level_2" %}
-                        <option value="All">All</option>
-                        <option value="Level 1">Level 1</option>
-                        <option value="Level 2" selected>Level 2</option>
-                        <option value="Level 3">Level 3</option>
-                        {% elif select == "Level_3" %}
-                        <option value="All">All</option>
-                        <option value="Level 1">Level 1</option>
-                        <option value="Level 2">Level 2</option>
-                        <option value="Level 3" selected>Level 3</option>
-                        {% endif %}
-                    </select>     
+                        <option value="All" {% if select == "All" %}selected{% endif %}>All</option>
+                        <option value="Level 1" {% if select == "Level 1" %}selected{% endif %}>Level 1</option>
+                        <option value="Level 2" {% if select == "Level 2" %}selected{% endif %}>Level 2</option>
+                        <option value="Level 3" {% if select == "Level 3" %}selected{% endif %}>Level 3</option>
+                    </select>   
                 </div>
                 <div class="input-group me-2" style="margin-right: 10px;" data-toggle="tooltip" data-placement="top" title="Number data">
                     <input type="number" value="{{ number }}" style="width: 70px;" min="10" id="number" name="number" class="form-control" aria-describedby="basic-addon2" onchange="updateNumber()">
@@ -182,12 +200,12 @@
                 <ul class="pagination justify-content-end">
                     {% if data.has_previous %}
                         <li class="page-item">
-                            <a class="page-link" href="?page=1&select={{ select }}&number={{ number }}" aria-label="First">
+                            <a class="page-link" href="?page=1&sortBy={{ sortBy }}&select={{ select }}&number={{ number }}" aria-label="First">
                                 <span aria-hidden="true">&laquo; first</span>
                             </a>
                         </li>
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ data.previous_page_number }}&select={{ select }}&number={{ number }}" aria-label="Previous">
+                            <a class="page-link" href="?page={{ data.previous_page_number }}&sortBy={{ sortBy }}&select={{ select }}&number={{ number }}" aria-label="Previous">
                                 <span aria-hidden="true">previous</span>
                             </a>
                         </li>
@@ -206,12 +224,12 @@
             
                     {% if data.has_next %}
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ data.next_page_number }}&select={{ select }}&number={{ number }}" aria-label="Next">
+                            <a class="page-link" href="?page={{ data.next_page_number }}&sortBy={{ sortBy }}&select={{ select }}&number={{ number }}" aria-label="Next">
                                 <span aria-hidden="true">next</span>
                             </a>
                         </li>
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ data.paginator.num_pages }}&select={{ select }}&number={{ number }}" aria-label="Last">
+                            <a class="page-link" href="?page={{ data.paginator.num_pages }}&sortBy={{ sortBy }}&select={{ select }}&number={{ number }}" aria-label="Last">
                                 <span aria-hidden="true">last &raquo;</span>
                             </a>
                         </li>
@@ -318,16 +336,38 @@ function fetchNumber() {
 function updateNumber() {
     var number = document.querySelector("input[name='number']");
     var filter = document.querySelector("#filterSelect");
+    var sort_by = document.querySelector("#sortSelect");
+    var sort_order = document.querySelector("#sortOrderSelect");
     number.addEventListener("input", function() {
         number.form.submit();
         number.textContent = number.value;
         filter.textContent = filter.value;
+        sort_by.textContent = sort_by.value;
+        sort_order.textContent = sort_order.value;
     });
     filter.addEventListener("change", function() {
         console.log('change');
         filter.form.submit();
         number.textContent = number.value;
         filter.textContent = filter.value;
+        sort_by.textContent = sort_by.value;
+        sort_order.textContent = sort_order.value;
+    });
+    sort_by.addEventListener("change", function() {
+        console.log('change');
+        sort_by.form.submit();
+        number.textContent = number.value;
+        filter.textContent = filter.value;
+        sort_by.textContent = sort_by.value;
+        sort_order.textContent = sort_order.value;
+    });
+    sort_order.addEventListener("change", function() {
+        console.log('change');
+        sort_order.form.submit();
+        number.textContent = number.value;
+        filter.textContent = filter.value;
+        sort_by.textContent = sort_by.value;
+        sort_order.textContent = sort_order.value;
     });
 }
 

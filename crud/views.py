@@ -1,13 +1,8 @@
 from .models import *
 import datetime
 from django.contrib import messages
-from django.core.files.storage import FileSystemStorage
 from django.contrib.auth.decorators import login_required
 from crud.forms import *
-from django.views.decorators.csrf import csrf_protect
-from django.http import HttpResponseRedirect
-from django.db.models import F
-from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import update_session_auth_hash 
@@ -16,27 +11,22 @@ from django.contrib.auth.hashers import check_password
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render,redirect
 from django.urls import reverse_lazy
 from django.views.generic.edit import FormView
-from django.contrib.auth.views import LoginView,PasswordChangeView
-from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate,login,logout
 from django.contrib.auth.hashers import make_password
 from django.utils.decorators import method_decorator
 from django.views import View
-from .forms import RegisterForm,LoginForm,PasswordChangeForm1
+from .forms import RegisterForm,LoginForm
 import uuid
 import pandas as pd
 import pickle
 import numpy as np
 import threading
 import datetime
-import json
-from .serializers import SimulationSerializer, DataSerializer
+from .serializers import SimulationSerializer
 import csv
 from django.http import HttpResponse
 from time import strftime
@@ -419,80 +409,66 @@ def delete_all(request):
 # database
 @login_required
 def database(request):
-    get_simulation = Simulation.objects.all()  
-    get_simulation = list(get_simulation)
-
+    # Lấy dữ liệu từ Simulation và serialize
+    get_simulation = Simulation.objects.all()
     serializer = SimulationSerializer(get_simulation, many=True)
-    get_simulation = serializer.data 
-    get_simulation.reverse() 
+    get_simulation = serializer.data
+    get_simulation.reverse()
 
-    # Pagination
-    number = 10
-    select1 = "All"
-    if request.method == 'GET':
-        number = request.GET.get('number', 10) 
-        number = int(number)
+    # Thiết lập các thông số mặc định
+    number = int(request.GET.get('number', 10))
+    sort_order = request.GET.get('sort_order', 'desc')
+    select1 = request.GET.get('filter', 'All')
+    sortBy = request.GET.get('sortBy', 'score')
 
-        select1 = request.GET.get('filter',"All")
-        print("select: ", select1)
-        if select1 == "All":
-            get_simulation = get_simulation
-        elif select1 == "Level 1":
-            get_simulation = [i for i in get_simulation if i['score'] >30] 
-        elif select1 == "Level 2":
-            get_simulation = [i for i in get_simulation if 20 <= i['score'] <= 30] 
-        elif select1 == "Level 3":
-            get_simulation = [i for i in get_simulation if 10 <= i['score'] < 20]
-    paginator = Paginator(get_simulation, number)
+    # Lọc dữ liệu
+    if select1 == 'All':
+        filtered_simulation = sorted(get_simulation, key=lambda x: x.get(sortBy, ''), reverse=(sort_order == 'desc'))
+    elif select1 in ['Level 1', 'Level 2', 'Level 3']:
+        filtered_simulation = [i for i in get_simulation if (select1 == 'Level 1' and i['score'] > 30) or
+                               (select1 == 'Level 2' and 20 <= i['score'] <= 30) or
+                               (select1 == 'Level 3' and 10 <= i['score'] < 20)]
+        filtered_simulation = sorted(filtered_simulation, key=lambda x: x.get(sortBy, ''), reverse=(sort_order == 'desc'))
+
+    # Phân trang
+    paginator = Paginator(filtered_simulation, number)
     page = request.GET.get('page')
-    
-    select1 = select1.replace(" ", "_")
+
     try:
         data = paginator.page(page)
     except PageNotAnInteger:
         data = paginator.page(1)
     except EmptyPage:
-        data = paginator.page(paginator.num_pages) 
+        data = paginator.page(paginator.num_pages)
 
-
-    # fiter
-    dic_cols = {"basket_icon_click":"Basket icon click", "basket_add_list":"Basket add list", "basket_add_detail":"Basket add detail", "sort_by":"Sort by", "image_picker":"Image picker", "account_page_click":"Account page click", "promo_banner_click":"Promo banner click", "detail_wishlist_add":"Detail wishlist add", "list_size_dropdown":"List size dropdown", "closed_minibasket_click":"Closed minibasket click", "checked_delivery_detail":"Checked delivery detail", "checked_returns_detail":"Checked returns detail", "sign_in":"Sign in", "saw_checkout":"Saw checkout", "saw_sizecharts":"Saw sizecharts", "saw_delivery":"Saw delivery", "saw_account_upgrade":"Saw account upgrade", "saw_homepage":"Saw homepage", "device_computer":"Device computer", "device_tablet":"Device tablet", "returning_user":"Returning user", "loc_uk":"Loc uk", "propensity":"Propensity"}
+    # Xử lý dữ liệu cho lọc
+    dic_cols = {"basket_icon_click": "Basket icon click", "basket_add_list": "Basket add list",
+                    "basket_add_detail": "Basket add detail", "sort_by": "Sort by", "image_picker": "Image picker",
+                    "account_page_click": "Account page click", "promo_banner_click": "Promo banner click",
+                    "detail_wishlist_add": "Detail wishlist add", "list_size_dropdown": "List size dropdown",
+                    "closed_minibasket_click": "Closed minibasket click", "checked_delivery_detail": "Checked delivery detail",
+                    "checked_returns_detail": "Checked returns detail", "sign_in": "Sign in", "saw_checkout": "Saw checkout",
+                    "saw_sizecharts": "Saw sizecharts", "saw_delivery": "Saw delivery", "saw_account_upgrade": "Saw account upgrade",
+                    "saw_homepage": "Saw homepage", "device_computer": "Device computer", "device_tablet": "Device tablet",
+                    "returning_user": "Returning user", "loc_uk": "Loc uk", "propensity": "Propensity"}    
     value_col_str = ",".join(dic_cols.values())
 
-    try:
-        isSelect, _ = IsSelect.objects.get_or_create(
-            id=1,
-            defaults={
-                'select': value_col_str,
-                'not_select': 'N'
-            }
-        )
-    except IsSelect.DoesNotExist:
-        isSelect, _ = IsSelect.objects.get_or_create(
-            id=1,
-            defaults={
-                'select': value_col_str,
-                'not_select': 'N'
-            }
-        )
-    if isSelect:
-        value_col = isSelect.select
-        if value_col != '':
-            value_col = value_col.split(",")
-        else:
-            value_col = []
-        value_not_col = isSelect.not_select
-        if value_not_col != '':
-            value_not_col = value_not_col.split(",")
-        else:
-            value_not_col = []
-        
-        key_col = [i.replace(" ", "_").lower() for i in value_col]
+    isSelect, _ = IsSelect.objects.get_or_create(
+        id=1,
+        defaults={
+            'select': value_col_str,
+            'not_select': 'N'
+        }
+    )
+
+    value_col = isSelect.select.split(",") if isSelect.select else []
+    value_not_col = isSelect.not_select.split(",") if isSelect.not_select else []
+    key_col = [i.replace(" ", "_").lower() for i in value_col]
 
     context = {'get_simulation': get_simulation, 'data': data, 'number': number, 'select': select1,
-               'value_col': value_col, 'value_not_col': value_not_col, 'key_col': key_col}
+               'value_col': value_col, 'value_not_col': value_not_col, 'key_col': key_col, 'sortBy': sortBy,
+               'sort_order': sort_order}
     return render(request, 'database.html', context)
-
 
 # User
 @login_required
