@@ -7,24 +7,24 @@ docker --version
 
 ## Bước 1: Xây dựng Docker Image
 
-Di chuyển đến thư mục chứa Dockerfile của ứng dụng backend:
+Di chuyển đến thư mục chứa Dockerfile của ứng dụng Customer-propensity-to-purchase:
 
 ```bash
-cd backend
+cd Customer-propensity-to-purchase
 ```
 
 Xây dựng image Docker từ Dockerfile:
 
 ```bash
-docker build -t backend .
+docker build -t Customer-propensity-to-purchase .
 ```
 
-## Bước 2: Chạy Ứng dụng Backend
+## Bước 2: Chạy Ứng dụng Customer-propensity-to-purchase
 
-Chạy ứng dụng backend trong một container Docker:
+Chạy ứng dụng Customer-propensity-to-purchase trong một container Docker:
 
 ```bash
-docker run -p 8000:8000 backend
+docker run -p 8000:8000 Customer-propensity-to-purchase
 ```
 
 Ứng dụng sẽ chạy và lắng nghe trên cổng 8000.
@@ -44,13 +44,13 @@ Nhập tên đăng nhập và mật khẩu của bạn khi được yêu cầu.
 Tag Docker image của bạn với tên repository trên Docker Hub:
 
 ```bash
-docker tag backend:latest diends/backend:de
+docker tag Customer-propensity-to-purchase:latest diends/yourname:image_name
 ```
 
 Đẩy Docker image lên Docker Hub:
 
 ```bash
-docker push diends/backend:de
+docker push diends/yourname:image_name
 ```
 
 ## Bước 5: Chạy Ứng dụng từ Docker Hub
@@ -58,9 +58,9 @@ docker push diends/backend:de
 Bây giờ, bạn có thể chạy ứng dụng backend từ image đã được đẩy lên Docker Hub:
 
 ```bash
-docker run -it --name backend -p 8000:8000 diends/backend:de
+docker run -it --name Customer-propensity-to-purchase -p 8000:8000 diends/yourname:image_name
 ```
 
 ---
 
-Đảm bảo thay thế `diends` bằng tên đăng nhập Docker Hub của bạn và `backend` bằng tên ứng dụng/backend của bạn.
+Đảm bảo thay thế `diends` bằng tên đăng nhập Docker Hub của bạn và `yourname` bằng tên ứng dụng/yourname của bạn.
