@@ -34,6 +34,8 @@ from fpdf import FPDF
 from tempfile import NamedTemporaryFile
 import os
 
+filename = 'D:/HK2/Kỹ_thuật_dữ_liệu/final/backend/crud/model/model_filename.pkl'
+
 # Account
 def login_required_if_authenticated(view_func):
     def _wrapped_view(request, *args, **kwargs):
@@ -502,7 +504,7 @@ class editUserID(APIView):
         user_id = request.data.get('user_id').strip()
         list_col = request.data.get('list_input').split(",")
         list_col = [int(i) for i in list_col]
-        with open('D:/HK2/Kỹ_thuật_dữ_liệu/final/backend/crud/model/model_filename.pkl', 'rb') as file:
+        with open(filename, 'rb') as file:
             loaded_model = pickle.load(file)
 
         propensity1 = loaded_model.predict_proba([list_col])[:, 1][0] 
@@ -610,7 +612,7 @@ class FileUpload(APIView):
                 if "propensity".lower() not in df.columns.str.lower():
                     userids = df['UserID']
                     df = df.drop(['ordered','UserID','device_mobile'], axis=1)
-                    with open('D:/HK2/Kỹ_thuật_dữ_liệu/final/backend/crud/model/model_filename.pkl', 'rb') as file:
+                    with open(filename, 'rb') as file:
                         loaded_model = pickle.load(file)
 
                     df['propensity'] = loaded_model.predict_proba(df)[:, 1]
@@ -650,7 +652,7 @@ class SimulationAPI(APIView):
         name = name.split(',')
         name = [int(i) for i in name]
         print(len(name))
-        with open('D:/HK2/Kỹ_thuật_dữ_liệu/final/backend/crud/model/model_filename.pkl', 'rb') as file:
+        with open(filename, 'rb') as file:
             loaded_model = pickle.load(file)
 
         propensity = loaded_model.predict_proba([name])[:, 1][0] 
