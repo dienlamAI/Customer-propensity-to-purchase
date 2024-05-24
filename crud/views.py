@@ -689,3 +689,12 @@ class SimulationAPI(APIView):
         serializer = SimulationSerializer(simulation)
         return Response({'message': 'Simulation was created successfully!','data':serializer.data}, status=status.HTTP_200_OK)
 
+
+
+class getData(APIView):
+    def post(self, request):
+        user_id = request.data.get('user_id').strip()
+        print(user_id)
+        get_simulation = Simulation.objects.filter(user_id=user_id).first()
+        serializer = SimulationSerializer(get_simulation)
+        return Response({'data': serializer.data}, status=status.HTTP_200_OK)

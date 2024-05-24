@@ -31,6 +31,7 @@ urlpatterns = [
     path('api/analysis-userID/', analysisUserID.as_view(), name='api_analysis_userID'),
     path('api/is-selected/', isSelected.as_view(), name='api_is_selected'),
     path('api/edit-userID/', editUserID.as_view(), name='api_edit_userID'),
+    path('api/get-data/', getData.as_view(), name='api_get_data'),
     # path('api/data/', getData.as_view(), name='api_data'),
     # path('api/number/', getNumber.as_view(), name='api_number'),
 ]

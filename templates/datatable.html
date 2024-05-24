@@ -560,27 +560,72 @@ function editData(){
 
             document.querySelector('#EditModal .modal-title').textContent = `Edit: ${userID0}`;
 
-            for (let i = 3; i <= 24; i++) {
-                l_edit.push(row.querySelector(`td:nth-child(${i})`).textContent);
-            }
+            // for (let i = 3; i <= 24; i++) {
+            //     l_edit.push(row.querySelector(`td:nth-child(${i})`).textContent);
+            // }
+            
+            const formData = new FormData();
+            formData.append('user_id', userID0);
+            fetch(`http://127.0.0.1:8000/api/get-data/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: formData,
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Lỗi mạng');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('get data:', data.data);
+                l_edit.push(parseInt(data.data.basket_icon_click));
+                l_edit.push(parseInt(data.data.basket_add_list));
+                l_edit.push(parseInt(data.data.basket_add_detail));
+                l_edit.push(parseInt(data.data.sort_by));
+                l_edit.push(parseInt(data.data.image_picker));
+                l_edit.push(parseInt(data.data.account_page_click));
+                l_edit.push(parseInt(data.data.promo_banner_click));
+                l_edit.push(parseInt(data.data.detail_wishlist_add));
+                l_edit.push(parseInt(data.data.list_size_dropdown));
+                l_edit.push(parseInt(data.data.closed_minibasket_click));
+                l_edit.push(parseInt(data.data.checked_delivery_detail));
+                l_edit.push(parseInt(data.data.checked_returns_detail));
+                l_edit.push(parseInt(data.data.sign_in));
+                l_edit.push(parseInt(data.data.saw_checkout));
+                l_edit.push(parseInt(data.data.saw_sizecharts));
+                l_edit.push(parseInt(data.data.saw_delivery));
+                l_edit.push(parseInt(data.data.saw_account_upgrade));
+                l_edit.push(parseInt(data.data.saw_homepage));
+                l_edit.push(parseInt(data.data.device_computer));
+                l_edit.push(parseInt(data.data.device_tablet));
+                l_edit.push(parseInt(data.data.returning_user));
+                l_edit.push(parseInt(data.data.loc_uk));
+                console.log('l_edit:', l_edit);
 
-            editModal.innerHTML = '';
-            const newDiv = document.createElement("div");
-            newDiv.className = "row";
-            editModal.appendChild(newDiv);
+                editModal.innerHTML = '';
+                const newDiv = document.createElement("div");
+                newDiv.className = "row";
+                editModal.appendChild(newDiv);
 
-            l_edit.forEach((value, index) => {
-                const checked = value == 1 ? 'checked' : '';
-                newDiv.innerHTML += `
-                    <div class="col-4">
-                        <div class="input-group mb-3">
-                            <label class="form-label">${name_col[index]}</label>
-                            <div class="form-check form-switch ms-auto">
-                                <input class="form-check-input" type="checkbox" id="${name_col[index].toLowerCase()}" name="${name_col[index].toLowerCase()}" ${checked}>
+                l_edit.forEach((value, index) => {
+                    const checked = value == 1 ? 'checked' : '';
+                    newDiv.innerHTML += `
+                        <div class="col-4">
+                            <div class="input-group mb-3">
+                                <label class="form-label">${name_col[index]}</label>
+                                <div class="form-check form-switch ms-auto">
+                                    <input class="form-check-input" type="checkbox" id="${name_col[index].toLowerCase()}" name="${name_col[index].toLowerCase()}" ${checked}>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                `;
+                    `;
+                });
+            })
+            .catch(error => {
+                console.error('Lỗi:', error);
             });
         });
     });
