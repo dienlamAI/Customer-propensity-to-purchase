@@ -406,6 +406,10 @@ function analysisUserID(){
                 const infoScore = document.querySelector('.info-score');
                 const infoLevel = document.querySelector('.info-level');
                 const rank = document.querySelector('.info-rank');
+                infoUserID.innerHTML = '';
+                infoScore.innerHTML = '';
+                infoLevel.innerHTML = '';
+                rank.innerHTML = '';
                 infoUserID.innerHTML = `<strong>User ID:</strong> ${data.data.user_id}`;
                 infoScore.innerHTML = `<strong>Score:</strong> ${data.data.score}`;
                 if (parseFloat(data.data.score) > 30){
