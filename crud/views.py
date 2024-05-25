@@ -392,10 +392,10 @@ def save_file(request):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = f'attachment; filename="{file_name}.csv"'
     writer = csv.writer(response)
-    writer.writerow(['user_id', 'basket_icon_click', 'basket_add_list', 'basket_add_detail', 'sort_by', 'image_picker', 'account_page_click', 'promo_banner_click', 'detail_wishlist_add', 'list_size_dropdown', 'closed_minibasket_click', 'checked_delivery_detail', 'checked_returns_detail', 'sign_in', 'saw_checkout', 'saw_sizecharts', 'saw_delivery', 'saw_account_upgrade', 'saw_homepage', 'device_computer', 'device_tablet', 'returning_user', 'loc_uk', 'propensity', 'score'])
+    writer.writerow(['user_id', 'basket_icon_click', 'basket_add_list', 'basket_add_detail', 'sort_by', 'image_picker', 'account_page_click', 'promo_banner_click', 'detail_wishlist_add', 'list_size_dropdown', 'closed_minibasket_click', 'checked_delivery_detail', 'checked_returns_detail', 'sign_in', 'saw_checkout', 'saw_sizecharts', 'saw_delivery', 'saw_account_upgrade', 'saw_homepage', 'device_computer', 'device_tablet', 'returning_user', 'loc_uk', 'propensity', 'created_at', 'updated_at', 'score'])
 
     for i in simulations:
-        writer.writerow([i.user_id, i.basket_icon_click, i.basket_add_list, i.basket_add_detail, i.sort_by, i.image_picker, i.account_page_click, i.promo_banner_click, i.detail_wishlist_add, i.list_size_dropdown, i.closed_minibasket_click, i.checked_delivery_detail, i.checked_returns_detail, i.sign_in, i.saw_checkout, i.saw_sizecharts, i.saw_delivery, i.saw_account_upgrade, i.saw_homepage, i.device_computer, i.device_tablet, i.returning_user, i.loc_uk, i.propensity, i.score])  
+        writer.writerow([i.user_id, i.basket_icon_click, i.basket_add_list, i.basket_add_detail, i.sort_by, i.image_picker, i.account_page_click, i.promo_banner_click, i.detail_wishlist_add, i.list_size_dropdown, i.closed_minibasket_click, i.checked_delivery_detail, i.checked_returns_detail, i.sign_in, i.saw_checkout, i.saw_sizecharts, i.saw_delivery, i.saw_account_upgrade, i.saw_homepage, i.device_computer, i.device_tablet, i.returning_user, i.loc_uk, i.propensity, i.created_at, i.updated_at, i.score])  
 
     return response
 
