@@ -1,5 +1,4 @@
 from .models import *
-import datetime
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from crud.forms import *
@@ -33,6 +32,8 @@ from time import strftime
 from fpdf import FPDF
 from tempfile import NamedTemporaryFile
 import os
+import random
+from datetime import datetime, timedelta
 
 filename = 'D:/HK2/Kỹ_thuật_dữ_liệu/final/backend/crud/model/model_filename.pkl'
 
@@ -328,6 +329,11 @@ def export_report(request):
     os.unlink(temp_pdf_path)
     return response
 # Upload File
+def random_datetime(start, end):
+    delta = end - start
+    int_delta = delta.days * 24 * 60 * 60 + delta.seconds
+    random_second = random.randrange(int_delta)
+    return start + timedelta(seconds=random_second)
 def process_data_chunk(df_chunk):
     for index, row in df_chunk.iterrows(): 
         simulation = Simulation(
@@ -356,8 +362,8 @@ def process_data_chunk(df_chunk):
             loc_uk = row['loc_uk'], 
             propensity = row['propensity'],
             score = row['score'],
-            created_at=datetime.datetime.now(),
-            updated_at=datetime.datetime.now(), )
+            created_at = random_datetime(datetime(2021, 1, 1), datetime(2023, 12, 31)),
+            updated_at = random_datetime(datetime(2021, 1, 1), datetime(2023, 12, 31)), )
         simulation.save() 
 @login_required
 def fileupload(request): 
@@ -422,6 +428,7 @@ def database(request):
     sort_order = request.GET.get('sort_order', 'desc')
     select1 = request.GET.get('filter', 'All')
     sortBy = request.GET.get('sortBy', 'score')
+    print(sortBy)
 
     # Lọc dữ liệu
     if select1 == 'All':
@@ -452,7 +459,7 @@ def database(request):
                     "checked_returns_detail": "Checked returns detail", "sign_in": "Sign in", "saw_checkout": "Saw checkout",
                     "saw_sizecharts": "Saw sizecharts", "saw_delivery": "Saw delivery", "saw_account_upgrade": "Saw account upgrade",
                     "saw_homepage": "Saw homepage", "device_computer": "Device computer", "device_tablet": "Device tablet",
-                    "returning_user": "Returning user", "loc_uk": "Loc uk", "propensity": "Propensity"}    
+                    "returning_user": "Returning user", "loc_uk": "Loc uk", "propensity": "Propensity", "created_at": "Created at", "updated_at": "Updated at"}    
     value_col_str = ",".join(dic_cols.values())
 
     isSelect, _ = IsSelect.objects.get_or_create(
@@ -466,7 +473,6 @@ def database(request):
     value_col = isSelect.select.split(",") if isSelect.select else []
     value_not_col = isSelect.not_select.split(",") if isSelect.not_select else []
     key_col = [i.replace(" ", "_").lower() for i in value_col]
-
     context = {'get_simulation': get_simulation, 'data': data, 'number': number, 'select': select1,
                'value_col': value_col, 'value_not_col': value_not_col, 'key_col': key_col, 'sortBy': sortBy,
                'sort_order': sort_order}
@@ -534,7 +540,7 @@ class editUserID(APIView):
         user.loc_uk = list_col[21]
         user.propensity = propensity1
         user.score = score1
-        user.updated_at = datetime.datetime.now()
+        user.updated_at = datetime.now()
         user.save()
         
         return Response({'data': 'UserID has been updated successfully!'}, status=status.HTTP_200_OK)
@@ -603,7 +609,7 @@ class FileUpload(APIView):
         threading1 = request.data.get('threading')
         if myfile.name.endswith('.csv') and myfile != None:   
             try:
-                start = datetime.datetime.now()
+                start = datetime.now()
                 df = pd.read_csv(myfile)   
                 if len(df) < int(end_number):
                     end_number = len(df)
@@ -635,7 +641,7 @@ class FileUpload(APIView):
                     
                 else:
                     process_data_chunk(df)
-                end = datetime.datetime.now()
+                end = datetime.now()
                 t = end - start
                 messages.success(request, 'File was uploaded successfully!')
                 print(f'File was uploaded successfully {t}!')
@@ -683,8 +689,8 @@ class SimulationAPI(APIView):
             loc_uk = name[21],
             propensity = propensity,
             score = score,
-            created_at = datetime.datetime.now(),
-            updated_at = datetime.datetime.now()
+            created_at = datetime.now(),
+            updated_at = datetime.now()
         )
         simulation.save()
         simulation = Simulation.objects.filter(user_id=simulation.user_id).first()
