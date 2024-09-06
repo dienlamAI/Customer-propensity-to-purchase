@@ -1,69 +1,70 @@
 ### Background
-- Công ty thương mại điện tử mới thành lập, có lượng truy cập cao nhưng tỷ lệ chuyển đổi web sang mua hàng thấp. Vì vậy, chúng tôi dự đoán khả năng mua hàng của từng người dùng và triển khai chính sách giảm giá nhắm mục tiêu để thúc đẩy họ mua hàng.
+- A newly established e-commerce company has high traffic but a low web-to-purchase conversion rate. Therefore, we predict the likelihood of each user making a purchase and implement targeted discount policies to encourage them to buy.
 
 ### Achievements
-- Phân tích RFM: Thực hiện phân tích RFM (Recency, Frequency, Monetary) chi tiết để phân loại người dùng dựa trên hành vi mua hàng của họ.
-- Mô hình Khả năng Mua hàng: Sử dụng mô hình khả năng để dự báo hành vi người dùng và xác định những người cần khuyến khích để thực hiện mua hàng.
+- RFM Analysis: Conducted detailed RFM (Recency, Frequency, Monetary) analysis to classify users based on their purchasing behavior.
+- Purchase Propensity Model: Used a propensity model to forecast user behavior and identify individuals who need encouragement to make a purchase.
 
 ---
-## Run docker
-Đảm bảo bạn đã cài đặt Docker trên máy tính của mình. Kiểm tra bằng cách chạy:
+
+## Run Docker
+Ensure that Docker is installed on your machine. Check by running:
 
 ```bash
 docker --version
 ```
 
-### Bước 1: Xây dựng Docker Image
+### Step 1: Build Docker Image
 
-Di chuyển đến thư mục chứa Dockerfile của ứng dụng Customer-propensity-to-purchase:
+Navigate to the directory containing the Dockerfile for the Customer-propensity-to-purchase application:
 
 ```bash
 cd Customer-propensity-to-purchase
 ```
 
-Xây dựng image Docker từ Dockerfile:
+Build the Docker image from the Dockerfile:
 
 ```bash
 docker build -t customer-propensity-to-purchase .
 ```
 
-### Bước 2: Chạy Ứng dụng Customer-propensity-to-purchase
+### Step 2: Run the Customer-propensity-to-purchase Application
 
-Chạy ứng dụng Customer-propensity-to-purchase trong một container Docker:
+Run the Customer-propensity-to-purchase application in a Docker container:
 
 ```bash
 docker run -p 8000:8000 customer-propensity-to-purchase
 ```
 
-Ứng dụng sẽ chạy và lắng nghe trên cổng 8000.
+The application will run and listen on port 8000.
 
-### Bước 3: Đăng nhập Docker Hub
+### Step 3: Log in to Docker Hub
 
-Đăng nhập vào Docker Hub từ terminal:
+Log in to Docker Hub from the terminal:
 
 ```bash
 docker login
 ```
 
-Nhập tên đăng nhập và mật khẩu của bạn khi được yêu cầu.
+Enter your username and password when prompted.
 
-### Bước 4: Tag và Đẩy Docker Image lên Docker Hub
+### Step 4: Tag and Push Docker Image to Docker Hub
 
-Tag Docker image của bạn với tên repository trên Docker Hub:
+Tag your Docker image with the repository name on Docker Hub:
 
 ```bash
 docker tag customer-propensity-to-purchase:latest diends/yourname:image_name
 ```
 
-Đẩy Docker image lên Docker Hub:
+Push the Docker image to Docker Hub:
 
 ```bash
 docker push diends/yourname:image_name
 ```
 
-### Bước 5: Chạy Ứng dụng từ Docker Hub
+### Step 5: Run Application from Docker Hub
 
-Bây giờ, bạn có thể chạy ứng dụng backend từ image đã được đẩy lên Docker Hub:
+Now, you can run the backend application from the image pushed to Docker Hub:
 
 ```bash
 docker run -it --name customer-propensity-to-purchase -p 8000:8000 diends/yourname:image_name
@@ -71,4 +72,4 @@ docker run -it --name customer-propensity-to-purchase -p 8000:8000 diends/yourna
 
 ---
 
-Đảm bảo thay thế `diends` bằng tên đăng nhập Docker Hub của bạn và `yourname` bằng tên ứng dụng/yourname của bạn.
+Make sure to replace `diends` with your Docker Hub username and `yourname` with your application/yourname.
